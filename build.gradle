@@ -1,0 +1,197 @@
+plugins {
+  id 'java-library'
+  id 'maven-publish'
+  id 'idea'
+  id 'net.neoforged.moddev' version '2.0.115'
+}
+
+version = mod_version
+group = mod_group_id
+
+configurations {
+  runtimeClasspath.extendsFrom localRuntime
+}
+
+repositories {
+  mavenLocal()
+  mavenCentral()
+
+  maven {
+    url "https://jitpack.io"
+    content {
+      includeGroup "com.github.CTNStudio"
+    }
+  }
+
+  // Modrinth Maven 仓库
+  maven {
+    url = uri("https://api.modrinth.com/maven")
+  }
+
+  // BlameJared 的 Forge 相关仓库
+  maven {
+    url = uri("https://maven.blamejared.com/")
+  }
+
+  // Curse Maven (用于 CurseForge 模组)
+  maven {
+    url = uri("https://www.cursemaven.com")
+    content {
+      includeGroup "curse.maven"
+    }
+  }
+
+  // GeckoLib 官方仓库
+  maven {
+    url = uri("https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/")
+    content {
+      includeGroup("software.bernie.geckolib")
+    }
+  }
+
+  // Ziggy 的模组仓库
+  maven {
+    url = uri("https://maven.zigythebird.com/mods")
+  }
+}
+
+base {
+  archivesName = mod_id
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+neoForge {
+
+  version = project.neo_version
+
+  parchment {
+    mappingsVersion = project.parchment_mappings_version
+    minecraftVersion = project.parchment_minecraft_version
+  }
+
+  runs {
+    client {
+      client()
+
+      systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+    }
+
+    server {
+      server()
+      programArgument '--nogui'
+      systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+    }
+
+    gameTestServer {
+      type = "gameTestServer"
+      systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+    }
+
+    data {
+      data()
+
+      programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
+    }
+
+    configureEach {
+      systemProperty 'forge.logging.markers', 'REGISTRIES'
+      logLevel = org.slf4j.event.Level.DEBUG
+
+      jvmArguments.addAll([
+        // 忽略无效指令，避免有的人没安装 JetBrain Runtime 无法启动游戏
+        "-XX:+IgnoreUnrecognizedVMOptions",
+        // 启用 JetBrain Runtime 热重载功能
+        "-XX:+AllowEnhancedClassRedefinition"
+      ])
+    }
+  }
+
+  mods {
+    "${mod_id}" {
+      sourceSet(sourceSets.main)
+    }
+  }
+
+  accessTransformers {
+    file('src/main/resources/META-INF/accesstransformer.cfg')
+  }
+}
+
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+
+dependencies {
+
+
+  implementation "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
+  compileOnly "curse.maven:jade-api-${jade_version}"
+  implementation "curse.maven:jade-${jade_version}"
+  compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
+  compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
+  localRuntime "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
+
+  implementation "club.snowlyicewolf:amarok-json-for-java:1.7.9"
+  additionalRuntimeClasspath "club.snowlyicewolf:amarok-json-for-java:1.7.9"
+
+  jarJar "club.snowlyicewolf:amarok-json-for-java:1.7.9"
+
+  implementation 'com.github.CTNStudio:Ctn-Api:-SNAPSHOT'
+
+  fileTree(dir: 'run/mods', include: '*.jar')
+//  additionalRuntimeClasspath 'com.github.CTNStudio:Ctn-Api:-SNAPSHOT'
+//  jarJar "com.github.CTNStudio:Ctn-Api:-SNAPSHOT"
+  File modsDir = file('run/mods')
+  if (modsDir.exists()) {
+    modsDir.eachFileMatch(~/.*\.jar/) { file ->
+      def fileName = file.name.take(file.name.lastIndexOf('.'))
+      println "Including mod: ${fileName}"
+      jarJar files(file)
+    }
+  }
+}
+
+jarJar {
+  enabled = true
+}
+
+var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
+  var replaceProperties = [minecraft_version      : minecraft_version,
+                           minecraft_version_range: minecraft_version_range,
+                           neo_version            : neo_version,
+                           neo_version_range      : neo_version_range,
+                           loader_version_range   : loader_version_range,
+                           mod_id                 : mod_id,
+                           mod_name               : mod_name,
+                           mod_license            : mod_license,
+                           mod_version            : mod_version,
+                           mod_authors            : mod_authors,
+                           mod_description        : mod_description]
+  inputs.properties replaceProperties
+  expand replaceProperties
+  from "src/main/templates"
+  into "build/generated/sources/modMetadata"
+}
+
+sourceSets.main.resources.srcDir generateModMetadata
+neoForge.ideSyncTask generateModMetadata
+
+publishing {
+  publications {
+    register('mavenJava', MavenPublication) {
+      from components.java
+    }
+  }
+  repositories {
+    maven {
+      url "file://${project.projectDir}/repo"
+    }
+  }
+}
+
+idea {
+  module {
+    downloadSources = true
+    downloadJavadoc = true
+  }
+}
