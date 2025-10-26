@@ -6,8 +6,4 @@ public interface IModPlayer {
   static IModPlayer of(Player player) {
     return (IModPlayer) player;
   }
-
-  int astralFlux$getAttackedTick();
-
-  void astralFlux$setAttackedTick(int attackedTick);
 }

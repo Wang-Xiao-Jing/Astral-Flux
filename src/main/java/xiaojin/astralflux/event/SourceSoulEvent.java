@@ -2,44 +2,45 @@ package xiaojin.astralflux.event;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.DifficultyChangeEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import xiaojin.astralflux.api.sourcesoul.ISourceSoul;
-import xiaojin.astralflux.api.sourcesoul.SourceSoulUtil;
+import xiaojin.astralflux.events.sourcesoul.SourceSoulConsumeEvent;
+import xiaojin.astralflux.util.SourceSoulUtil;
 import xiaojin.astralflux.init.ModAttributes;
 
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static xiaojin.astralflux.AstralFlux.ID;
+import static xiaojin.astralflux.core.AstralFlux.ID;
 
 @EventBusSubscriber(modid = ID)
 public final class SourceSoulEvent {
+
   /**
    * 难度改变
    */
   @SubscribeEvent
   public static void onDifficultyChange(DifficultyChangeEvent event) {
     final var minecraft = ServerLifecycleHooks.getCurrentServer();
-    if (minecraft != null) {
-      var difficulty = event.getDifficulty();
-      StreamSupport.stream(minecraft.getAllLevels().spliterator(), true)
-        .map(ServerLevel::players)
-        .filter(list -> !list.isEmpty()).flatMap(List::stream)
-        .filter(SourceSoulUtil::isSourceSoul)
-        .collect(Collectors.toMap(serverPlayer -> difficulty,
-          serverPlayer -> serverPlayer))
-        .forEach((difficulty1, player) -> {
-          SourceSoulUtil.difficultyChange(difficulty1, player);
-          SourceSoulUtil.synchronize(player);
-        });
+    if (minecraft == null) {
+      return;
     }
+    var difficulty = event.getDifficulty();
+    StreamSupport.stream(minecraft.getAllLevels().spliterator(), true).map(ServerLevel::players)
+      .filter(list -> !list.isEmpty()).flatMap(List::stream).filter(SourceSoulUtil::isAttribute)
+      .collect(Collectors.toMap(serverPlayer -> difficulty, serverPlayer -> serverPlayer))
+      .forEach((difficulty1, player) -> {
+        SourceSoulUtil.difficultyChange(difficulty1, player);
+        SourceSoulUtil.synchronize(player);
+      });
   }
 
   /**
@@ -48,7 +49,7 @@ public final class SourceSoulEvent {
   @SubscribeEvent
   public static void onSave(PlayerEvent.SaveToFile event) {
     if (event.getEntity() instanceof ServerPlayer serverPlayer) {
-      ISourceSoul.of(serverPlayer).astralFlux$saveSourceSoulValue();
+      ISourceSoul.of(serverPlayer).saveSourceSoulValue();
       SourceSoulUtil.synchronize(serverPlayer);
     }
   }
@@ -59,7 +60,7 @@ public final class SourceSoulEvent {
   @SubscribeEvent
   public static void onLoading(PlayerEvent.LoadFromFile event) {
     var player = event.getEntity();
-    ISourceSoul.of(player).astralFlux$loadSourceSoulValue();
+    ISourceSoul.of(player).loadSourceSoulValue();
     SourceSoulUtil.difficultyChange(player.level().getDifficulty(), player);
   }
 
@@ -81,16 +82,15 @@ public final class SourceSoulEvent {
   public static void onReset(PlayerEvent.Clone event) {
     final var player = event.getEntity();
     if (event.isWasDeath()) {
-      ISourceSoul.of(player).astralFlux$setSourceSoulValue(0);
+      ISourceSoul iSourceSoul = ISourceSoul.of(player);
+      iSourceSoul.setSourceSoulValue(0);
+      iSourceSoul.setPauseSourceSoulRecoveryTick(0);
     }
     if (player instanceof ServerPlayer serverPlayer) {
-      ISourceSoul.of(serverPlayer).astralFlux$saveSourceSoulValue();
+      ISourceSoul.of(serverPlayer).saveSourceSoulValue();
       SourceSoulUtil.synchronize(serverPlayer);
     }
   }
-
-  // TODO 直在不处于最大上限，没有处于特殊环境（比如梦境）时自然恢复
-  // TODO 在被消耗后或恢复被打断后10s内不会再触发自然恢复
 
   /**
    * 玩家每tick
@@ -98,14 +98,35 @@ public final class SourceSoulEvent {
   @SubscribeEvent
   public static void onTick(PlayerTickEvent.Pre event) {
     final var player = event.getEntity();
+    final ISourceSoul sourceSoul;
     if (!(player instanceof ServerPlayer serverPlayer)) {
       return;
     }
-    final var sourceSoul = ISourceSoul.of(serverPlayer);
-    if (!sourceSoul.astralFlux$isRecover()) {
+    sourceSoul = ISourceSoul.of(serverPlayer);
+    // TODO 不处于处于特殊环境（比如梦境）时自然恢复
+    if (!sourceSoul.allowSourceSoulRecover()) {
+      sourceSoul.setPauseSourceSoulRecoveryTick(sourceSoul.getPauseSourceSoulRecoveryTick() - 1);
       return;
     }
-    sourceSoul.astralFlux$increaseSourceSoulValue(player.getAttributeValue(ModAttributes.SOURCE_SOUL_RECOVERY));
+    sourceSoul.modifySourceSoulValue(player.getAttributeValue(ModAttributes.SOURCE_SOUL_RECOVERY_VALUE));
     SourceSoulUtil.synchronize(serverPlayer);
+  }
+
+  /**
+   * 受击
+   */
+  @SubscribeEvent
+  public static void onHit(LivingDamageEvent.Post event) {
+    if (event.getNewDamage() > 0 && event.getEntity() instanceof ISourceSoul iSourceSoul) {
+      iSourceSoul.setPauseSourceSoulRecoveryTick(SourceSoulUtil.HIT_PAUSE_RECOVERY_TICK);
+    }
+  }
+
+  /**
+   * 消耗源魂事件
+   */
+  @SubscribeEvent
+  public static <T extends LivingEntity & ISourceSoul> void onConsume(SourceSoulConsumeEvent.Post<T> event){
+    event.getEntity().setPauseSourceSoulRecoveryTick(SourceSoulUtil.CONSUME_PAUSE_RECOVERY_TICK);
   }
 }

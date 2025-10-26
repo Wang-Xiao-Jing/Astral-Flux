@@ -4,7 +4,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
-import xiaojin.astralflux.AstralFlux;
+import xiaojin.astralflux.core.AstralFlux;
 import xiaojin.astralflux.common.payloads.SourceSoulData;
 
 @EventBusSubscriber

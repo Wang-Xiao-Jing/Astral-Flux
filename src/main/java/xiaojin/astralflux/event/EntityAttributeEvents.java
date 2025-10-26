@@ -5,7 +5,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import net.neoforged.neoforge.event.entity.EntityAttributeModificationEvent;
-import xiaojin.astralflux.AstralFlux;
+import xiaojin.astralflux.core.AstralFlux;
 import xiaojin.astralflux.init.ModAttributes;
 
 
@@ -17,7 +17,7 @@ public final class EntityAttributeEvents {
 
   @SubscribeEvent
   public static void addAttribute(EntityAttributeModificationEvent event) {
-    event.add(EntityType.PLAYER, ModAttributes.SOURCE_SOUL_RECOVERY);
+    event.add(EntityType.PLAYER, ModAttributes.SOURCE_SOUL_RECOVERY_VALUE);
     event.add(EntityType.PLAYER, ModAttributes.MAX_SOURCE_SOUL);
   }
 }

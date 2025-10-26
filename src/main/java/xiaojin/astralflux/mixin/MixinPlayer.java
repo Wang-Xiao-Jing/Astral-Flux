@@ -1,12 +1,13 @@
 package xiaojin.astralflux.mixin;
 
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import xiaojin.astralflux.api.sourcesoul.ISourceSoul;
-import xiaojin.astralflux.api.sourcesoul.SourceSoulUtil;
+import xiaojin.astralflux.client.gui.layers.SourceSoulBarLayerDraw;
+import xiaojin.astralflux.util.SourceSoulUtil;
 import xiaojin.astralflux.init.ModAttributes;
 import xiaojin.astralflux.mixinimod.IModPlayer;
 
@@ -22,16 +23,10 @@ public abstract class MixinPlayer implements IModPlayer, ISourceSoul {
   private double astralFlux$sourceSoulValue;
 
   /**
-   * 受击计时
+   * 暂停源魂恢复计时tick
    */
   @Unique
-  private int astralFlux$attackedTick;
-
-  /**
-   * 消耗源魂计时
-   */
-  @Unique
-  private int astralFlux$consumeSourceSoulTick;
+  private int astralFlux$pauseSourceSoulRecoveryTick;
 
   @Unique
   @Override
@@ -42,12 +37,16 @@ public abstract class MixinPlayer implements IModPlayer, ISourceSoul {
   @Unique
   @Override
   public void astralFlux$setSourceSoulValue(double sourceSoulValue) {
+    // 源魂值改变时显示源魂条
+    if (astralFlux$getPlayer() instanceof LocalPlayer && astralFlux$sourceSoulValue != sourceSoulValue) {
+      SourceSoulBarLayerDraw.INSTANCE.addOperation(sourceSoulValue - astralFlux$sourceSoulValue);
+    }
     astralFlux$sourceSoulValue = Math.clamp(sourceSoulValue, 0, astralFlux$getPlayer().getAttributeValue(ModAttributes.MAX_SOURCE_SOUL));
   }
 
   @Unique
   @Override
-  public void astralFlux$increaseSourceSoulValue(double sourceSoulValue) {
+  public void astralFlux$modifySourceSoulValue(double sourceSoulValue) {
     astralFlux$setSourceSoulValue(astralFlux$getSourceSoulValue() + sourceSoulValue);
   }
 
@@ -66,7 +65,7 @@ public abstract class MixinPlayer implements IModPlayer, ISourceSoul {
   @Override
   public void astralFlux$loadSourceSoulValue() {
     var nbt = astralFlux$getPlayer().getPersistentData();
-    if (nbt.contains(SOURCE_SOUL_VALUE_NBT)) {
+    if (!nbt.contains(SOURCE_SOUL_VALUE_NBT)) {
       nbt.putDouble(SOURCE_SOUL_VALUE_NBT, 0);
     }
     astralFlux$sourceSoulValue = nbt.getDouble(SOURCE_SOUL_VALUE_NBT);
@@ -74,28 +73,18 @@ public abstract class MixinPlayer implements IModPlayer, ISourceSoul {
 
   @Unique
   @Override
-  public boolean astralFlux$isRecover() {
-    return astralFlux$attackedTick <= 0 && astralFlux$consumeSourceSoulTick <= 0 &&
-      SourceSoulUtil.getSourceSoulMaxValue(astralFlux$getPlayer()) > astralFlux$sourceSoulValue;
+  public boolean astralFlux$allowSourceSoulRecover() {
+    return astralFlux$pauseSourceSoulRecoveryTick <= 0 &&
+      SourceSoulUtil.getMaxValue(astralFlux$getPlayer()) > astralFlux$sourceSoulValue;
   }
 
   @Unique
-  public int astralFlux$getAttackedTick() {
-    return astralFlux$attackedTick;
+  public int astralFlux$getPauseSourceSoulRecoveryTick() {
+    return astralFlux$pauseSourceSoulRecoveryTick;
   }
 
   @Unique
-  public void astralFlux$setAttackedTick(int attackedTick) {
-    this.astralFlux$attackedTick = attackedTick;
-  }
-
-  @Unique
-  public int astralFlux$getConsumeSourceSoulTick() {
-    return astralFlux$consumeSourceSoulTick;
-  }
-
-  @Unique
-  public void astralFlux$setConsumeSourceSoulTick(int consumeSourceSoulTick) {
-    this.astralFlux$consumeSourceSoulTick = consumeSourceSoulTick;
+  public void astralFlux$setPauseSourceSoulRecoveryTick(int tick) {
+    this.astralFlux$pauseSourceSoulRecoveryTick = tick;
   }
 }

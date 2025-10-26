@@ -6,7 +6,7 @@ import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoAnimatable;
 import software.bernie.geckolib.model.GeoModel;
-import xiaojin.astralflux.AstralFlux;
+import xiaojin.astralflux.core.AstralFlux;
 
 @OnlyIn(Dist.CLIENT)
 public class BasicGeoModel<T extends GeoAnimatable> extends GeoModel<T> {

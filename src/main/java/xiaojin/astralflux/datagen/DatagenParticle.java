@@ -6,7 +6,7 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.common.data.ParticleDescriptionProvider;
-import xiaojin.astralflux.AstralFlux;
+import xiaojin.astralflux.core.AstralFlux;
 
 import java.util.function.Supplier;
 

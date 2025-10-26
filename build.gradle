@@ -122,8 +122,6 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 
 dependencies {
-
-
   implementation "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
   compileOnly "curse.maven:jade-api-${jade_version}"
   implementation "curse.maven:jade-${jade_version}"
@@ -136,16 +134,18 @@ dependencies {
 
   jarJar "club.snowlyicewolf:amarok-json-for-java:1.7.9"
 
-  implementation 'com.github.CTNStudio:Ctn-Api:-SNAPSHOT'
-
   fileTree(dir: 'run/mods', include: '*.jar')
-//  additionalRuntimeClasspath 'com.github.CTNStudio:Ctn-Api:-SNAPSHOT'
-//  jarJar "com.github.CTNStudio:Ctn-Api:-SNAPSHOT"
+
+//  implementation "com.github.CTNStudio:Ctn-Api:${ctn_version}"
+//  additionalRuntimeClasspath "com.github.CTNStudio:Ctn-Api:${ctn_version}"
+//  jarJar "com.github.CTNStudio:Ctn-Api:${ctn_version}"
+
   File modsDir = file('run/mods')
   if (modsDir.exists()) {
     modsDir.eachFileMatch(~/.*\.jar/) { file ->
       def fileName = file.name.take(file.name.lastIndexOf('.'))
       println "Including mod: ${fileName}"
+      implementation files(file)
       jarJar files(file)
     }
   }

@@ -3,7 +3,7 @@ package xiaojin.astralflux.datagen;
 import net.minecraft.data.PackOutput;
 import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
-import xiaojin.astralflux.AstralFlux;
+import xiaojin.astralflux.core.AstralFlux;
 import xiaojin.astralflux.init.ModItems;
 
 public class DatagenItemModel extends ItemModelProvider {

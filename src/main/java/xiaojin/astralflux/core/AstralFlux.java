@@ -1,10 +1,13 @@
-package xiaojin.astralflux;
+package xiaojin.astralflux.core;
 
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.neoforge.client.gui.ConfigurationScreen;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,6 +23,8 @@ public class AstralFlux {
 
   public AstralFlux(IEventBus bus, ModContainer container) {
     LOGGER.info("HELLO from server starting");
+    container.registerConfig(ModConfig.Type.CLIENT, AstralFluxConfig.CLIENT_CONFIG_SPEC);
+    container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
     ModAttributes.REGISTRY.register(bus);
     ModItems.REGISTRY.register(bus);
     ModCreativeModeTabs.REGISTRY.register(bus);

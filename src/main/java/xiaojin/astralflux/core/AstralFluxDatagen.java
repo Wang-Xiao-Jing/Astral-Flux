@@ -1,4 +1,4 @@
-package xiaojin.astralflux;
+package xiaojin.astralflux.core;
 
 import com.mojang.text2speech.Narrator;
 import net.minecraft.data.DataGenerator;

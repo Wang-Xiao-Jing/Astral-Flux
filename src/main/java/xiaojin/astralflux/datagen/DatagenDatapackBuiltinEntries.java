@@ -12,7 +12,7 @@ import net.minecraft.world.damagesource.DamageScaling;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.damagesource.DeathMessageType;
 import net.neoforged.neoforge.common.data.DatapackBuiltinEntriesProvider;
-import xiaojin.astralflux.AstralFlux;
+import xiaojin.astralflux.core.AstralFlux;
 
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
