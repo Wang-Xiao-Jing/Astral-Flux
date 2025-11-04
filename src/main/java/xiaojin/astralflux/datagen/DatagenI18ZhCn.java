@@ -5,10 +5,9 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.neoforge.common.data.LanguageProvider;
-import xiaojin.astralflux.client.gui.layers.SourceSoulBarLayerDraw;
+import xiaojin.astralflux.common.commands.SourceSoulCommands;
 import xiaojin.astralflux.core.AstralFlux;
 import xiaojin.astralflux.core.AstralFluxConfig;
-import xiaojin.astralflux.common.commands.SourceSoulCommands;
 import xiaojin.astralflux.core.AstralFluxKey;
 import xiaojin.astralflux.init.ModAttributes;
 import xiaojin.astralflux.init.ModItems;
@@ -84,8 +83,8 @@ public class DatagenI18ZhCn extends LanguageProvider {
       "流光轻逝配置");
     add(AstralFluxConfig.CLIENT_CONFIG.detailsSourceSoulValueType,
       "是否显示源魂详细值");
-    add(AstralFluxConfig.CLIENT_CONFIG.detailsOperationSourceSoulValueSkipWords,
-      "是否显示操作源魂值跳字");
+    add(AstralFluxConfig.CLIENT_CONFIG.detailsModifySourceSoulValueSkipWords,
+      "是否显示修改源魂值跳字");
     add(AstralFluxKey.SWITCH_DETAILS_SOURCE_SOUL_VALUE_TYPE,
       "切换源魂详细值类型");
   }

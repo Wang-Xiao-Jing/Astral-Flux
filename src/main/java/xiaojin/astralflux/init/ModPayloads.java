@@ -4,8 +4,8 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+import xiaojin.astralflux.common.payloads.PlayerLeftClickEmptyPayload;
 import xiaojin.astralflux.core.AstralFlux;
-import xiaojin.astralflux.common.payloads.SourceSoulData;
 
 @EventBusSubscriber
 public final class ModPayloads {
@@ -16,11 +16,11 @@ public final class ModPayloads {
     //..
 
     /// 接收来自服务端的数据
-    registrar.commonToClient(SourceSoulData.TYPE, SourceSoulData.STREAM_CODEC, SourceSoulData::toClient);
     //..
 
     /// 接收来自客户端的数据
     //..
+    registrar.commonToServer(PlayerLeftClickEmptyPayload.TYPE, PlayerLeftClickEmptyPayload.STREAM_CODEC, PlayerLeftClickEmptyPayload::toServer);
     AstralFlux.LOGGER.info("Registering payloads finish");
   }
 }

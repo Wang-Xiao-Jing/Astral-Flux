@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
 
-public class AstralFluxConfig {
+public final class AstralFluxConfig {
   // 客户端配置 //
   public static final ClientConfig CLIENT_CONFIG;
   public static final ModConfigSpec CLIENT_CONFIG_SPEC;
@@ -23,15 +23,15 @@ public class AstralFluxConfig {
    */
   public static class ClientConfig {
     public final ModConfigSpec.ConfigValue<Boolean> detailsSourceSoulValueType;
-    public final ModConfigSpec.ConfigValue<Boolean> detailsOperationSourceSoulValueSkipWords;
+    public final ModConfigSpec.ConfigValue<Boolean> detailsModifySourceSoulValueSkipWords;
 
     public ClientConfig(ModConfigSpec.Builder builder) {
       this.detailsSourceSoulValueType = define(builder, false,
         "gui.details_source_soul_value_type",
         "是否显示源魂详细值");
-      this.detailsOperationSourceSoulValueSkipWords = define(builder, false,
-        "gui.details_operation_source_soul_value_skip_words",
-        "是否显示操作源魂值跳字");
+      this.detailsModifySourceSoulValueSkipWords = define(builder, false,
+          "gui.details_modify_source_soul_value_skip_words",
+          "是否显示修改源魂值跳字");
     }
   }
 

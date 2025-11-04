@@ -1,7 +1,5 @@
 package xiaojin.astralflux.util;
 
-import ctn.ctnapi.util.PayloadUtil;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -9,9 +7,10 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 import xiaojin.astralflux.core.AstralFlux;
-import xiaojin.astralflux.api.sourcesoul.ISourceSoul;
-import xiaojin.astralflux.common.payloads.SourceSoulData;
+import xiaojin.astralflux.core.AstralFluxEvents;
+import xiaojin.astralflux.events.sourcesoul.SourceSoulModifyEvent;
 import xiaojin.astralflux.init.ModAttributes;
+import xiaojin.astralflux.init.ModDateAttachments;
 
 import javax.annotation.Nullable;
 
@@ -30,68 +29,126 @@ public final class SourceSoulUtil {
    * 消耗暂停tick
    */
   public static final int CONSUME_PAUSE_RECOVERY_TICK = 10 * 20;
-  /**
-   * 源魂值NBT
-   */
-  private static final String SOURCE_SOUL_VALUE_NBT = "source_soul_value";
 
   /**
-   * 判断是否带有源魂属性
+   * 修改源魂
+   * <p>
+   * 建议使用该方法这，此方法会触发{@link SourceSoulModifyEvent}事件
+   * @return 是否修改成功
    */
-  public static boolean isAttribute(LivingEntity entity) {
-    return entity instanceof ISourceSoul ||
-      entity.getPersistentData().contains(SOURCE_SOUL_VALUE_NBT) &&
-        entity.getAttributes().hasAttribute(ModAttributes.MAX_SOURCE_SOUL);
+  public static boolean modify(LivingEntity entity, double consumeValue) {
+    if (!isAttribute(entity)) {
+      return false;
+    }
+    var pre = AstralFluxEvents.sourceSoulModifyPre(entity, getValue(entity), consumeValue);
+    var oldSourceSoulValue = getValue(entity);
+    if (pre.isCanceled()) {
+      return false;
+    }
+    var value = pre.getModifyValue();
+    modifyValue(entity, value);
+    AstralFluxEvents.sourceSoulModifyPost(entity, oldSourceSoulValue, value);
+    return true;
+  }
+
+  /**
+   * 判断是否可以修改源魂
+   * @return 是否可以修改
+   */
+  public static boolean canModify(LivingEntity entity, double consumeValue) {
+    return isAttribute(entity) && !(getValue(entity) < consumeValue);
   }
 
   /**
    * 判断是否带有源魂属性
    */
+  public static boolean isAttribute(LivingEntity entity) {
+    return entity instanceof Player ||
+      entity.hasData(ModDateAttachments.SOURCE_SOUL) &&
+        entity.getAttributes().hasAttribute(ModAttributes.MAX_SOURCE_SOUL);
+  }
+
+  /**
+   * 判断是否带有恢复源魂属性
+   */
   public static boolean isRecoveryAttribute(LivingEntity entity) {
-    return entity instanceof ISourceSoul || entity.getAttributes().hasAttribute(ModAttributes.SOURCE_SOUL_RECOVERY_VALUE);
+    return entity instanceof Player || entity.getAttributes().hasAttribute(ModAttributes.SOURCE_SOUL_RECOVERY_VALUE);
+  }
+
+  /**
+   * 判断是否带有暂停恢复tick
+   */
+  public static boolean isPauseRecoveryTick(final LivingEntity entity) {
+    return entity instanceof Player || entity.hasData(ModDateAttachments.SOURCE_SOUL_PAUSE_RECOVERY_TICK);
   }
 
   /**
    * 获取源魂值
    */
   public static double getValue(LivingEntity entity) {
-    return !isAttribute(entity) ? 0 : entity.getPersistentData().getDouble(SOURCE_SOUL_VALUE_NBT);
+    return isAttribute(entity) ? entity.getData(ModDateAttachments.SOURCE_SOUL) : 0;
   }
 
   /**
    * 设置源魂值
    */
   public static void setValue(LivingEntity entity, double targetValue) {
-    if (isAttribute(entity)) {
-      double value = Math.clamp(targetValue, 0, entity.getAttributeValue(ModAttributes.MAX_SOURCE_SOUL));
-      entity.getPersistentData().putDouble(SOURCE_SOUL_VALUE_NBT, value);
+    if (!isAttribute(entity)) {
+      return;
     }
+    if (entity.hasData(ModDateAttachments.SOURCE_SOUL) && entity instanceof Player) {
+      // 如果没有就调用这个创建
+      entity.getData(ModDateAttachments.SOURCE_SOUL);
+    }
+    entity.setData(ModDateAttachments.SOURCE_SOUL, targetValue);
   }
 
   /**
-   * 增加源魂值
+   * 在原来的基础上修改（增加）源魂值
    */
-  public static void increaseValue(LivingEntity entity, double value) {
-    if (isAttribute(entity)) {
-      setValue(entity, value + entity.getPersistentData().getDouble(SOURCE_SOUL_VALUE_NBT));
+  public static void modifyValue(LivingEntity entity, double value) {
+    if (!isAttribute(entity)) {
+      return;
     }
+    setValue(entity, getValue(entity) + value);
+  }
+
+  /**
+   * 获取源魂暂停恢复tick
+   */
+  public static int getPauseRecoveryTick(LivingEntity entity) {
+    return isPauseRecoveryTick(entity) ? entity.getData(ModDateAttachments.SOURCE_SOUL_PAUSE_RECOVERY_TICK) : 0;
+  }
+
+  /**
+   * 设置暂停恢复tick
+   */
+  public static void setPauseRecoveryTick(LivingEntity entity, int targetValue) {
+    if (!isPauseRecoveryTick(entity)) {
+      return;
+    }
+    entity.setData(ModDateAttachments.SOURCE_SOUL_PAUSE_RECOVERY_TICK, targetValue);
+  }
+
+  /**
+   * 在原来的基础上修改（增加）暂停恢复tick
+   */
+  public static void modifyPauseRecoveryTick(LivingEntity entity, int value) {
+    if (!isPauseRecoveryTick(entity)) {
+      return;
+    }
+    setPauseRecoveryTick(entity, getPauseRecoveryTick(entity) + value);
   }
 
   /**
    * 修改基础最大源魂值到指定的值
    */
-  @SuppressWarnings("DataFlowIssue")
   public static void setMaxBaseValue(LivingEntity entity, double targetValue) {
-    if (isAttribute(entity)) {
-      setValue(entity, setAttributeBaseValue(entity, getMaxAttributeInstance(entity), targetValue));
+    if (!isAttribute(entity)) {
+      return;
     }
-  }
-
-  /**
-   * 修改基础最大源魂值到指定的值
-   */
-  public static void setMaxBaseValue(Player player, double targetValue) {
-    ISourceSoul.of(player).setSourceSoulValue(setAttributeBaseValue(player, getMaxAttributeInstance(player), targetValue));
+    //noinspection DataFlowIssue 因为以及判断过了
+    setValue(entity, setAttributeBaseValue(entity, getMaxAttributeInstance(entity), targetValue));
   }
 
   /**
@@ -99,16 +156,10 @@ public final class SourceSoulUtil {
    */
   @SuppressWarnings("DataFlowIssue")
   public static void setRecoveryBaseValue(LivingEntity entity, double targetValue) {
-    if (isAttribute(entity)) {
-      setAttributeBaseValue(entity, getRecoveryValueAttributeInstance(entity), targetValue);
+    if (!isAttribute(entity)) {
+      return;
     }
-  }
-
-  /**
-   * 修改源魂恢复基础值到指定的值
-   */
-  public static void setRecoveryBaseValue(Player player, double targetValue) {
-    setAttributeBaseValue(player, getRecoveryValueAttributeInstance(player), targetValue);
+    setAttributeBaseValue(entity, getRecoveryValueAttributeInstance(entity), targetValue);
   }
 
   /**
@@ -149,35 +200,28 @@ public final class SourceSoulUtil {
    * 获取最大源魂值
    */
   public static double getMaxValue(LivingEntity entity) {
-    return !isAttribute(entity) ? 0 : entity.getAttributeValue(ModAttributes.MAX_SOURCE_SOUL);
-  }
-
-  /**
-   * 获取最大源魂值
-   */
-  public static double getMaxValue(Player player) {
-    return player.getAttributeValue(ModAttributes.MAX_SOURCE_SOUL);
+    return isAttribute(entity) ? entity.getAttributeValue(ModAttributes.MAX_SOURCE_SOUL) : 0;
   }
 
   /**
    * 获取源魂恢复速度，单位每tick
    */
   public static double getRecoveryValue(LivingEntity entity) {
-    return !isRecoveryAttribute(entity) ? 0 : entity.getAttributeValue(ModAttributes.SOURCE_SOUL_RECOVERY_VALUE);
+    return isRecoveryAttribute(entity) ? entity.getAttributeValue(ModAttributes.SOURCE_SOUL_RECOVERY_VALUE) : 0;
   }
 
   /**
-   * 获取源魂恢复速度，单位每tick
+   * 是否允许源魂恢复
    */
-  public static double getRecoveryValue(Player player) {
-    return player.getAttributeValue(ModAttributes.SOURCE_SOUL_RECOVERY_VALUE);
+  public static boolean allowSourceSoulRecover(LivingEntity entity) {
+    return isAttribute(entity) &&
+      isRecoveryAttribute(entity) &&
+      getPauseRecoveryTick(entity) <= 0 &&
+      getValue(entity) < getMaxValue(entity);
   }
 
   /**
    * 根据难度改变最大源魂值
-   *
-   * @param difficulty 难度
-   * @param player     玩家
    */
   public static void difficultyChange(Difficulty difficulty, Player player) {
     var maxSourceSoul = getMaxAttributeInstance(player);
@@ -188,25 +232,11 @@ public final class SourceSoulUtil {
         case HARD -> 45;
       }, AttributeModifier.Operation.ADD_VALUE));
     // 修改当前值以不让它超过上限
-    ISourceSoul.of(player).setSourceSoulValue(Math.min(maxSourceSoul.getValue(), getValue(player)));
-  }
-
-  /**
-   * 同步源魂值
-   * <p>
-   * 请手动同步
-   */
-  public static void synchronize(Player player) {
-    if (player instanceof ServerPlayer serverPlayer) {
-      PayloadUtil.sendToClient(serverPlayer, new SourceSoulData(ISourceSoul.of(serverPlayer).getSourceSoulValue()));
-    }
+    setValue(player, Math.min(maxSourceSoul.getValue(), getValue(player)));
   }
 
   private static double setAttributeBaseValue(LivingEntity entity, AttributeInstance attributeInstance, double targetValue) {
     attributeInstance.setBaseValue(targetValue);
-    return Math.min(attributeInstance.getValue(),
-      (entity instanceof ISourceSoul iSourceSoul) ?
-        iSourceSoul.getSourceSoulValue() :
-        getValue(entity));
+    return Math.min(attributeInstance.getValue(), isAttribute(entity) ? getValue(entity) : 0);
   }
 }

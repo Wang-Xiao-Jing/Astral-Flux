@@ -1,41 +1,53 @@
-package xiaojin.astralflux.event;
+package xiaojin.astralflux.eventadditional;
 
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
-import xiaojin.astralflux.common.item.AegusBarrier;
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import xiaojin.astralflux.common.item.aegusbarrier.AegusBarrier;
+import xiaojin.astralflux.common.item.aegusbarrier.AegusBarrierShields;
+import xiaojin.astralflux.init.ModDateAttachments;
 
-@EventBusSubscriber
-public class EntityEvent {
-  @SubscribeEvent
-  public static void entityHurtEvent(LivingIncomingDamageEvent event) {
+public final class AegusBarrierEvents {
+  public static void onTick(final PlayerTickEvent.Pre event) {
+    final var entity = event.getEntity();
+    var barrierShields = entity.getExistingDataOrNull(ModDateAttachments.AEGUS_BARRIER_SHIELD);
+    if (barrierShields == null) {
+      return;
+    }
+    barrierShields.tick(entity);
+  }
+
+  public static void onHurt(LivingIncomingDamageEvent event) {
     final var entity = event.getEntity();
     if (!(entity instanceof Player player) || !(event.getSource().getEntity() instanceof Projectile projectile)) {
       return;
     }
 
-    final var item = player.getItemInHand(player.getUsedItemHand());
-    if (!(item.getItem() instanceof AegusBarrier) || !AegusBarrier.canBarrierWork(item)) {
+    var barrierShields = player.getExistingDataOrNull(ModDateAttachments.AEGUS_BARRIER_SHIELD);
+    if (barrierShields == null) {
       return;
     }
 
-    final int index = getIndexOfSide(projectile, player);
-    if (AegusBarrier.canBarrierSideWork(item, index)) {
+    final int index = getIndexOfSide(projectile, player, barrierShields);
+    if (barrierShields.interdict(index)) {
       event.setCanceled(true);
     }
   }
 
   /**
    * 获取将要命中护盾的定位数。
+   *
    * @param projectile 投射物
-   * @param player 玩家
+   * @param player     玩家
    */
   private static int getIndexOfSide(final Projectile projectile,
-                                    final Player player) {
+                                    final Player player,
+                                    final AegusBarrierShields barrierShields) {
+    // TODO 改下这个以适配AegusBarrierShields的角度
     final Vec3 diProj = projectile.getLookAngle();
     final Vec3 diPlayer = player.getLookAngle();
 
@@ -48,7 +60,7 @@ public class EntityEvent {
     final double y0 = diProj.z;
     final double y1 = diPlayer.z;
 
-    double angle = Math.acos(calCos(x0, y0, x1, y1 )) * 180 / Math.PI;
+    double angle = Math.acos(calCos(x0, y0, x1, y1)) * 180 / Math.PI;
     angle = projectile.getX() < player.getX() ? -angle : angle;
     angle = (angle + 360) % 360;
 
@@ -58,7 +70,7 @@ public class EntityEvent {
   /**
    * 双非零向量求 cos θ。
    */
-  public static double calCos(final double x0, final double y0,
+  private static double calCos(final double x0, final double y0,
                                final double x1, final double y1) {
     final double dp = x0 * x1 + y0 * y1;
     final double fc =

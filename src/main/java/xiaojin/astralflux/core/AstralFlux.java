@@ -12,12 +12,10 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import xiaojin.astralflux.init.ModAttributes;
-import xiaojin.astralflux.init.ModCreativeModeTabs;
-import xiaojin.astralflux.init.ModItems;
+import xiaojin.astralflux.init.*;
 
 @Mod(AstralFlux.ID)
-public class AstralFlux {
+public final class AstralFlux {
   public static final String ID = "astralflux";
   public static final Logger LOGGER = LogManager.getLogger(ID);
 
@@ -25,6 +23,8 @@ public class AstralFlux {
     LOGGER.info("HELLO from server starting");
     container.registerConfig(ModConfig.Type.CLIENT, AstralFluxConfig.CLIENT_CONFIG_SPEC);
     container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
+    ModDateAttachments.REGISTRY.register(bus);
+    ModEntitys.REGISTRY.register(bus);
     ModAttributes.REGISTRY.register(bus);
     ModItems.REGISTRY.register(bus);
     ModCreativeModeTabs.REGISTRY.register(bus);
@@ -32,6 +32,10 @@ public class AstralFlux {
 
   public static ResourceLocation modRL(final String name) {
     return ResourceLocation.fromNamespaceAndPath(AstralFlux.ID, name);
+  }
+
+  public static String modRLText(final String name) {
+    return AstralFlux.ID + ":" + name;
   }
 
   public static <T> @NotNull DeferredRegister<T> modRegister(Registry<T> registry) {

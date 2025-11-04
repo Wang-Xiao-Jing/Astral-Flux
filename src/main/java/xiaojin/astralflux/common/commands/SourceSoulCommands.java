@@ -11,7 +11,6 @@ import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import xiaojin.astralflux.core.AstralFlux;
-import xiaojin.astralflux.api.sourcesoul.ISourceSoul;
 import xiaojin.astralflux.init.ModAttributes;
 import xiaojin.astralflux.util.SourceSoulUtil;
 
@@ -39,10 +38,9 @@ public class SourceSoulCommands {
           .then(logic(ProcessType.RECOVERY_SPEED, false)))
         .then(Commands.literal("reset").executes(context -> {
           var player = EntityArgument.getPlayer(context, "target");
-          ISourceSoul.of(player).setSourceSoulValue(0);
+          SourceSoulUtil.setValue(player, 0);
           SourceSoulUtil.setMaxBaseValue(player, ModAttributes.MAX_SOURCE_SOUL.value().getDefaultValue());
           SourceSoulUtil.setRecoveryBaseValue(player, ModAttributes.SOURCE_SOUL_RECOVERY_VALUE.value().getDefaultValue());
-          SourceSoulUtil.synchronize(player);
           context.getSource().sendSuccess(() ->
             Component.translatable(getFormattedKey(RESET_KEY), player.getName()), true);
           return 1;
@@ -62,17 +60,12 @@ public class SourceSoulCommands {
       var player = EntityArgument.getPlayer(context, "target");
       double value = 0;
       switch (processType) {
-        case VALUE -> ISourceSoul.of(player).setSourceSoulValue(0);
-        case MAX_VALUE -> {
-          value = ModAttributes.MAX_SOURCE_SOUL.value().getDefaultValue();
-          SourceSoulUtil.setMaxBaseValue(player, value);
-        }
-        case RECOVERY_SPEED -> {
-          value = ModAttributes.SOURCE_SOUL_RECOVERY_VALUE.value().getDefaultValue();
-          SourceSoulUtil.setRecoveryBaseValue(player, value);
-        }
+        case VALUE -> SourceSoulUtil.setValue(player, 0);
+        case MAX_VALUE ->
+          SourceSoulUtil.setMaxBaseValue(player, value = ModAttributes.MAX_SOURCE_SOUL.value().getDefaultValue());
+        case RECOVERY_SPEED ->
+          SourceSoulUtil.setRecoveryBaseValue(player, value = ModAttributes.SOURCE_SOUL_RECOVERY_VALUE.value().getDefaultValue());
       }
-      SourceSoulUtil.synchronize(player);
       final double finalValue = value;
       context.getSource().sendSuccess(() ->
         Component.translatable(getFormattedKey(RESET_KEY, name), player.getName(), finalValue), true);
@@ -90,11 +83,10 @@ public class SourceSoulCommands {
       var player = EntityArgument.getPlayer(context, "target");
       switch (processType) {
         case VALUE -> {
-          var iSourceSoul = ISourceSoul.of(player);
           if (isSet) {
-            iSourceSoul.setSourceSoulValue(value);
+            SourceSoulUtil.setValue(player, value);
           } else {
-            value = iSourceSoul.getSourceSoulValue();
+            value = SourceSoulUtil.getValue(player);
           }
         }
         case MAX_VALUE -> {
@@ -111,9 +103,6 @@ public class SourceSoulCommands {
             value = SourceSoulUtil.getRecoveryValue(player);
           }
         }
-      }
-      if (isSet) {
-        SourceSoulUtil.synchronize(player);
       }
       final double finalValue = value;
       context.getSource().sendSuccess(() ->

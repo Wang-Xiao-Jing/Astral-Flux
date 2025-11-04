@@ -14,14 +14,12 @@ import net.minecraft.client.gui.LayeredDraw;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector2f;
-import xiaojin.astralflux.api.sourcesoul.IOperationSourceSouItem;
+import xiaojin.astralflux.api.sourcesoul.IModifySourceSouItem;
 import xiaojin.astralflux.core.AstralFlux;
-import xiaojin.astralflux.api.sourcesoul.ISourceSoul;
 import xiaojin.astralflux.core.AstralFluxConfig;
 import xiaojin.astralflux.util.SourceSoulUtil;
 
@@ -52,8 +50,8 @@ public class SourceSoulBarLayerDraw implements LayeredDraw.Layer {
   /**
    * 需要处理的调整数值
    */
-  private final Deque<Double> operationSkipWordsDeque = new ArrayDeque<>();
-  private final List<OperationText> operationSkipWordsTextList = new ArrayList<>();
+  private final Deque<Double> modifySkipWordsDeque = new ArrayDeque<>();
+  private final List<ModifyText> modifySkipWordsTextList = new ArrayList<>();
   private float displayTime;
 
   public SourceSoulBarLayerDraw() {
@@ -64,9 +62,9 @@ public class SourceSoulBarLayerDraw implements LayeredDraw.Layer {
     this.sourceSoulBarHeight = this.sourceSoulBar.getHeight();
   }
 
-  public void addOperation(double value) {
-    if (AstralFluxConfig.CLIENT_CONFIG.detailsOperationSourceSoulValueSkipWords.get()){
-      this.operationSkipWordsDeque.addLast(value);
+  public void addModify(double value) {
+    if (AstralFluxConfig.CLIENT_CONFIG.detailsModifySourceSoulValueSkipWords.get()) {
+      this.modifySkipWordsDeque.addLast(value);
     }
     display();
   }
@@ -92,9 +90,8 @@ public class SourceSoulBarLayerDraw implements LayeredDraw.Layer {
 
     // 只有当玩家存在时才更新玩家相关数据
     if (this.minecraft.player != null) {
-      final var sourceSoul = ISourceSoul.of(player);
-      this.value = sourceSoul.getSourceSoulValue();
-      this.maxValue = SourceSoulUtil.getMaxValue(player);
+      this.value = SourceSoulUtil.getValue(this.player);
+      this.maxValue = SourceSoulUtil.getMaxValue(this.player);
       this.sourceSoulBar.setValue(this.value, this.maxValue);
     }
   }
@@ -103,12 +100,12 @@ public class SourceSoulBarLayerDraw implements LayeredDraw.Layer {
   public void render(@NotNull GuiGraphics guiGraphics, @NotNull DeltaTracker deltaTracker) {
     this.player = this.minecraft.player;
     var weaponItem = this.player.getWeaponItem();
-    boolean isOperationSourceSouItem;
-    if (weaponItem.getItem() instanceof IOperationSourceSouItem i) {
-      isOperationSourceSouItem = true;
-      this.sourceSoulBar.setFlicker(i.getOperationValue(weaponItem));
+    boolean isModifySourceSouItem;
+    if (weaponItem.getItem() instanceof IModifySourceSouItem i) {
+      isModifySourceSouItem = true;
+      this.sourceSoulBar.setFlicker(i.getModifyValue(weaponItem, this.player));
     } else {
-      isOperationSourceSouItem = false;
+      isModifySourceSouItem = false;
       this.sourceSoulBar.setFlicker(0);
       if (this.displayTime <= 0) {
         return;
@@ -138,21 +135,21 @@ public class SourceSoulBarLayerDraw implements LayeredDraw.Layer {
 
     pose.popPose();
 
-    if (AstralFluxConfig.CLIENT_CONFIG.detailsOperationSourceSoulValueSkipWords.get()){
-      if (!operationSkipWordsDeque.isEmpty()) {
+    if (AstralFluxConfig.CLIENT_CONFIG.detailsModifySourceSoulValueSkipWords.get()) {
+      if (!modifySkipWordsDeque.isEmpty()) {
         // 添加调整数值跳字
-        addOperationSkipWords();
+        addModifySkipWords();
       }
-      if (!this.operationSkipWordsTextList.isEmpty()) {
+      if (!this.modifySkipWordsTextList.isEmpty()) {
         // 渲染调整数值跳字
-        renderOperationSkipWordsText(guiGraphics, pose);
+        renderModifySkipWordsText(guiGraphics, pose);
       }
     }
 
     guiGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0f);
     RenderSystem.disableBlend();
     pose.popPose();
-    if (isOperationSourceSouItem) {
+    if (isModifySourceSouItem) {
       display();
     } else {
       this.displayTime -= this.realtimeDeltaTicks;
@@ -184,8 +181,8 @@ public class SourceSoulBarLayerDraw implements LayeredDraw.Layer {
     pose.popPose();
   }
 
-  private void addOperationSkipWords() {
-    var poll = operationSkipWordsDeque.poll();
+  private void addModifySkipWords() {
+    var poll = modifySkipWordsDeque.poll();
     if (poll == null) {
       return;
     }
@@ -213,57 +210,57 @@ public class SourceSoulBarLayerDraw implements LayeredDraw.Layer {
     int soulBarHeight = sourceSoulBar.getRenderHeight();
     float x = (float) this.sourceSoulBarWidth / 2 - (float) font.width(component) / 2;
     float y = (float) ((double) soulBarHeight / 2 - sourceSoulBar.getRenderHeightValue() + (double) font.lineHeight);
-    this.operationSkipWordsTextList.add(new OperationText(new Vector2f(this.leftPos + x, this.topPos + y), speed, component));
+    this.modifySkipWordsTextList.add(new ModifyText(new Vector2f(this.leftPos + x, this.topPos + y), speed, component));
   }
 
-  private void renderOperationSkipWordsText(final @NotNull GuiGraphics guiGraphics, final PoseStack pose) {
+  private void renderModifySkipWordsText(final @NotNull GuiGraphics guiGraphics, final PoseStack pose) {
     pose.pushPose();
     // 使用迭代器提高删除效率
-    Iterator<OperationText> iterator = this.operationSkipWordsTextList.iterator();
+    Iterator<ModifyText> iterator = this.modifySkipWordsTextList.iterator();
     while (iterator.hasNext()) {
-      var operationText = iterator.next();
-      var pos = operationText.pos;
-      var text = operationText.text;
+      var modifyText = iterator.next();
+      var pos = modifyText.pos;
+      var text = modifyText.text;
 
       pose.pushPose();
-      float alpha = Math.min(1.0f, operationText.time / 2) / 2;
+      float alpha = Math.min(1.0f, modifyText.time / 2) / 2;
       guiGraphics.setColor(1.0F, 1.0F, 1.0F, alpha);
       guiGraphics.drawString(font, text.getVisualOrderText(), pos.x, pos.y, ChatFormatting.WHITE.getColor(), true);
       guiGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
       pose.popPose();
 
       pos.add(
-        operationText.speed.x * realtimeDeltaTicks,
-        operationText.speed.y * realtimeDeltaTicks
+        modifyText.speed.x * realtimeDeltaTicks,
+        modifyText.speed.y * realtimeDeltaTicks
       );
 
       // 添加重力
-      operationText.speed.y += 0.9f * realtimeDeltaTicks;
+      modifyText.speed.y += 0.9f * realtimeDeltaTicks;
 
       // 添加水平阻力
-      operationText.speed.x *= 0.99f;
+      modifyText.speed.x *= 0.99f;
 
-      operationText.time -= realtimeDeltaTicks;
+      modifyText.time -= realtimeDeltaTicks;
 
       // 移除过期或超出屏幕的文本
-      if (operationText.time <= 0 ||
-        operationText.pos.y <= 0 ||
-        operationText.pos.y >= screenHeight ||
-        operationText.pos.x <= 0 ||
-        operationText.pos.x >= screenWidth) {
+      if (modifyText.time <= 0 ||
+        modifyText.pos.y <= 0 ||
+        modifyText.pos.y >= screenHeight ||
+        modifyText.pos.x <= 0 ||
+        modifyText.pos.x >= screenWidth) {
         iterator.remove();
       }
     }
     pose.popPose();
   }
 
-  private static final class OperationText {
+  private static final class ModifyText {
     private final Vector2f pos;
     private final Vector2f speed;
     private final Component text;
     private float time;
 
-    private OperationText(Vector2f pos, Vector2f speed, Component text) {
+    private ModifyText(Vector2f pos, Vector2f speed, Component text) {
       this.pos = pos;
       this.speed = speed;
       this.text = text;

@@ -18,7 +18,7 @@ import xiaojin.astralflux.datagen.loot.DatagenLootTableProvider;
  */
 @EventBusSubscriber
 @SuppressWarnings("all")
-public class AstralFluxDatagen {
+public final class AstralFluxDatagen {
   @SubscribeEvent
   public static void gatherData(GatherDataEvent event) {
     final var generator = event.getGenerator();
