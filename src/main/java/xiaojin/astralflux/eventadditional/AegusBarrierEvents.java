@@ -18,6 +18,7 @@ public final class AegusBarrierEvents {
     if (barrierShields == null) {
       return;
     }
+    barrierShields.setTargetRot(entity.getXRot(), entity.getYRot());
     barrierShields.tick(entity);
   }
 
