@@ -3,8 +3,8 @@ package xiaojin.astralflux.event;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
-import xiaojin.astralflux.core.AstralFlux;
 import xiaojin.astralflux.common.commands.SourceSoulCommands;
+import xiaojin.astralflux.core.AstralFlux;
 
 /**
  * 指令事件

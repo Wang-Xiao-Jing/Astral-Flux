@@ -10,7 +10,6 @@ import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
-import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import xiaojin.astralflux.api.ItemLeftClickEmpty;
 import xiaojin.astralflux.common.payloads.PlayerLeftClickEmptyPayload;
@@ -18,8 +17,6 @@ import xiaojin.astralflux.eventadditional.AegusBarrierEvents;
 import xiaojin.astralflux.eventadditional.SourceSoulEvents;
 import xiaojin.astralflux.events.PlayerLeftClickEmptyEvent;
 import xiaojin.astralflux.events.sourcesoul.SourceSoulModifyEvent;
-
-import static xiaojin.astralflux.eventadditional.SourceSoulEvents.onHit;
 
 @EventBusSubscriber
 public final class PlayerEvents {

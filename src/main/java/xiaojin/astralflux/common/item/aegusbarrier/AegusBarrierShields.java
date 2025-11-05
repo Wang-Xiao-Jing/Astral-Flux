@@ -3,7 +3,6 @@ package xiaojin.astralflux.common.item.aegusbarrier;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.attachment.AttachmentSyncHandler;
 import net.neoforged.neoforge.attachment.IAttachmentHolder;
 import org.jetbrains.annotations.NotNull;
@@ -14,7 +13,6 @@ import xiaojin.astralflux.util.SourceSoulUtil;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Aegus屏障护盾管理类
