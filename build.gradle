@@ -17,10 +17,8 @@ repositories {
   mavenCentral()
 
   maven {
-    url "https://jitpack.io"
-    content {
-      includeGroup "com.github.CTNStudio"
-    }
+    name = "JitPack"
+    url = 'https://jitpack.io'
   }
 
   // Modrinth Maven 仓库
@@ -129,25 +127,8 @@ dependencies {
   compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
   localRuntime "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
 
-  implementation "club.snowlyicewolf:amarok-json-for-java:1.7.9"
-  additionalRuntimeClasspath "club.snowlyicewolf:amarok-json-for-java:1.7.9"
-
-  jarJar "club.snowlyicewolf:amarok-json-for-java:1.7.9"
-
-  fileTree(dir: 'run/mods', include: '*.jar')
-
-//  implementation "com.github.CTNStudio:Ctn-Api:${ctn_version}"
-//  additionalRuntimeClasspath "com.github.CTNStudio:Ctn-Api:${ctn_version}"
-//  jarJar "com.github.CTNStudio:Ctn-Api:${ctn_version}"
-
-  File modsDir = file('run/mods')
-  if (modsDir.exists()) {
-    modsDir.eachFileMatch(~/.*\.jar/) { file ->
-      def fileName = file.name.take(file.name.lastIndexOf('.'))
-      println "Including mod: ${fileName}"
-      implementation files(file)
-      jarJar files(file)
-    }
+  jarJar(implementation(group: "com.github.CTNStudio", name: "Ctn-Api")) {
+    version { prefer ctn_api_version }
   }
 }
 

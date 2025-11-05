@@ -123,7 +123,8 @@ public final class AegusBarrierShields {
 
   public boolean interdict(int shieldNumber) {
     return shields.stream()
-      .filter(shield -> shield.getNumber() == shieldNumber)
+      .filter(shield -> shield.isNumber(shieldNumber))
+      .filter(Shield::isIntact)
       .findFirst()
       .map(shield -> {
         shield.onRemove();
@@ -312,6 +313,10 @@ public final class AegusBarrierShields {
 
     public int getNumber() {
       return number;
+    }
+
+    public boolean isNumber(int number) {
+      return this.number == number;
     }
 
     public boolean isIntact() {
