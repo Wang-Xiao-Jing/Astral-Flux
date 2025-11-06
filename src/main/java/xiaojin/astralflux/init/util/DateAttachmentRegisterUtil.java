@@ -8,8 +8,9 @@ import xiaojin.astralflux.core.AstralFlux;
 
 import java.util.function.Supplier;
 
+import static xiaojin.astralflux.init.ModDateAttachments.REGISTRY;
+
 public abstract class DateAttachmentRegisterUtil {
-  public static final DeferredRegister<AttachmentType<?>> REGISTRY = AstralFlux.modRegister(NeoForgeRegistries.ATTACHMENT_TYPES);
 
   protected static <T> DeferredHolder<AttachmentType<?>, AttachmentType<T>> register
     (String name, AttachmentType.Builder<T> factory) {

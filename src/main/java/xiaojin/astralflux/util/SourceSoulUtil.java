@@ -40,23 +40,20 @@ public final class SourceSoulUtil {
     if (!isAttribute(entity)) {
       return false;
     }
-    var pre = AstralFluxEvents.sourceSoulModifyPre(entity, getValue(entity), consumeValue);
     var oldSourceSoulValue = getValue(entity);
+    var pre = AstralFluxEvents.sourceSoulModifyPre(entity, getValue(entity), consumeValue);
     if (pre.isCanceled()) {
       return false;
     }
-    var value = pre.getModifyValue();
-    modifyValue(entity, value);
-    AstralFluxEvents.sourceSoulModifyPost(entity, oldSourceSoulValue, value);
+    var newConsumeValue = pre.getModifyValue();
+    if (newConsumeValue != 0) {
+      if (!(oldSourceSoulValue + newConsumeValue >= 0)) {
+        return false;
+      }
+      modifyValue(entity, Math.min(newConsumeValue, getMaxValue(entity)));
+      AstralFluxEvents.sourceSoulModifyPost(entity, oldSourceSoulValue, newConsumeValue);
+    }
     return true;
-  }
-
-  /**
-   * 判断是否可以修改源魂
-   * @return 是否可以修改
-   */
-  public static boolean canModify(LivingEntity entity, double consumeValue) {
-    return isAttribute(entity) && !(getValue(entity) < consumeValue);
   }
 
   /**

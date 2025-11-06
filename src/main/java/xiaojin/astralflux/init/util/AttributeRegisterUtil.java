@@ -1,16 +1,15 @@
 package xiaojin.astralflux.init.util;
 
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 import net.neoforged.neoforge.common.BooleanAttribute;
 import net.neoforged.neoforge.registries.DeferredHolder;
-import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
 import xiaojin.astralflux.core.AstralFlux;
 
+import static xiaojin.astralflux.init.ModAttributes.REGISTRY;
+
 public abstract class AttributeRegisterUtil {
-  public static final DeferredRegister<Attribute> REGISTRY = AstralFlux.modRegister(BuiltInRegistries.ATTRIBUTE);
 
   @NotNull
   protected static <T extends Attribute> DeferredHolder<Attribute, T> register

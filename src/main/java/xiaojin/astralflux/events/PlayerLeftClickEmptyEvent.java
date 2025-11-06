@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
 public abstract class PlayerLeftClickEmptyEvent extends PlayerInteractEvent implements IModBusEvent {
   public PlayerLeftClickEmptyEvent(final Player player,
                                    final InteractionHand hand) {
-    super(player, hand, null, null);
+    super(player, hand, BlockPos.ZERO, null);
   }
 
   @Override

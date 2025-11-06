@@ -23,6 +23,7 @@ public final class AstralFlux {
     LOGGER.info("HELLO from server starting");
     container.registerConfig(ModConfig.Type.CLIENT, AstralFluxConfig.CLIENT_CONFIG_SPEC);
     container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
+    ModDataComponent.REGISTRY.register(bus);
     ModDateAttachments.REGISTRY.register(bus);
     ModEntitys.REGISTRY.register(bus);
     ModAttributes.REGISTRY.register(bus);

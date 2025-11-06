@@ -9,8 +9,9 @@ import xiaojin.astralflux.core.AstralFlux;
 
 import java.util.function.Supplier;
 
+import static xiaojin.astralflux.init.ModEntitys.REGISTRY;
+
 public abstract class EntityRegisterUtil {
-  public static final DeferredRegister<EntityType<?>> REGISTRY = AstralFlux.modRegister(BuiltInRegistries.ENTITY_TYPE);
 
   protected static <T extends Entity> DeferredHolder<EntityType<?>, EntityType<T>> register
     (String name, EntityType.Builder<T> builder) {

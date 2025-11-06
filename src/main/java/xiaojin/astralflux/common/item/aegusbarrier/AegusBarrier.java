@@ -50,11 +50,12 @@ public class AegusBarrier extends Item implements IModifySourceSouItem , ItemLef
       // 添加失败 因为已经达到最大数量
       return InteractionResultHolder.fail(itemInHand);
     }
-
+    // 源魂值消耗
+    if (!SourceSoulUtil.modify(player, modifyValue)) {
+      return InteractionResultHolder.fail(itemInHand);
+    }
     // 添加未完全成型的护盾
     shields.addShield();
-    // 源魂值消耗
-    SourceSoulUtil.modify(player, modifyValue);
     player.startUsingItem(usedHand);
     return InteractionResultHolder.consume(itemInHand);
   }

@@ -6,6 +6,5 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import xiaojin.astralflux.core.AstralFlux;
 
 public abstract class CreativeModeTabUtil {
-  public static final DeferredRegister<CreativeModeTab> REGISTRY = AstralFlux.modRegister(BuiltInRegistries.CREATIVE_MODE_TAB);
 
 }
