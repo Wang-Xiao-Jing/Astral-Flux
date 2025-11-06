@@ -33,6 +33,8 @@ public final class ModUtil {
     final double funAngle = 360.0 / range;
     Quaterniond[] index = new Quaterniond[range];
 
+    int indexOf = 0;
+
     for (double i = 0; i < 360.0; i += funAngle) {
       final double finalAngle = convertTo180(angle + funAngle);
 
@@ -40,7 +42,7 @@ public final class ModUtil {
       final double y = r * Math.sin(finalAngle * Math.PI / 180);
 
       final var op = new Quaterniond(x, 0, y, finalAngle);
-      index[Mth.floor(i)] = op;
+      index[indexOf++] = op;
     }
 
     return index;
