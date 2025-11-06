@@ -88,14 +88,12 @@ public final class AegusBarrierShields {
 
     // 如果第一面已展开，每3秒消耗一次资源维持护盾
     if (this.isTheFirstSideExpands && this.consumeTics >= 20 * 3) {
-      if (!SourceSoulUtil.canModify(player, CONSUME_VALUE)) {
+      if (!SourceSoulUtil.modify(player, CONSUME_VALUE)) {
         if (!clientSide) {
           remove(player);
         }
         return;
       }
-
-      SourceSoulUtil.modify(player, CONSUME_VALUE);
       this.consumeTics = 0;
     }
 
@@ -384,12 +382,12 @@ public final class AegusBarrierShields {
       shield.yRotO = buf.readFloat();
       shield.targetXRot = buf.readFloat();
       shield.targetYRot = buf.readFloat();
-      shield.shields = List.of(buf.readArray(Shield[]::new, buf1 -> {
+      shield.shields = new ArrayList<>(List.of(buf.readArray(Shield[]::new, buf1 -> {
         var shield1 = new Shield(buf1.readInt());
         shield1.isIntact = buf1.readBoolean();
         shield1.isRemove = buf1.readBoolean();
         return shield1;
-      }));
+      })));
       return shield;
     }
   }

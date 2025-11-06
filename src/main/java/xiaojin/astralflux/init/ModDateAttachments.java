@@ -4,10 +4,15 @@ import com.mojang.serialization.Codec;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import xiaojin.astralflux.common.item.aegusbarrier.AegusBarrierShields;
+import xiaojin.astralflux.core.AstralFlux;
 import xiaojin.astralflux.init.util.DateAttachmentRegisterUtil;
 
 public final class ModDateAttachments extends DateAttachmentRegisterUtil {
+  public static final DeferredRegister<AttachmentType<?>> REGISTRY = AstralFlux.modRegister(NeoForgeRegistries.ATTACHMENT_TYPES);
+
   public static final DeferredHolder<AttachmentType<?>, AttachmentType<Double>> SOURCE_SOUL = register(
     "source_soul", AttachmentType
       .builder(() -> 0d)

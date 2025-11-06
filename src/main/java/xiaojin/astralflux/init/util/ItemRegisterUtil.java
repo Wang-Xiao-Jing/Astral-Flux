@@ -8,8 +8,9 @@ import xiaojin.astralflux.core.AstralFlux;
 
 import java.util.function.Function;
 
+import static xiaojin.astralflux.init.ModItems.REGISTRY;
+
 public abstract class ItemRegisterUtil {
-  public static final DeferredRegister.Items REGISTRY = DeferredRegister.createItems(AstralFlux.ID);
 
   @NotNull
   protected static DeferredItem<Item> register

@@ -1,5 +1,6 @@
 package xiaojin.astralflux.util;
 
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Quaterniond;
 import org.joml.Vector2d;
@@ -8,67 +9,56 @@ import org.joml.Vector3f;
 
 public final class ModUtil {
   /**
-   * 计算带平滑延迟的跟随位置
-   *
-   * @param current      当前位置
-   * @param target       目标位置
-   * @param speed        跟随速度 (0.0-1.0, 值越小越平滑但延迟越大)
-   * @param partialTicks 部分刻度
-   * @return 平滑后的位置
+   * 获取环形内全部中心定位。
+   * @param x 原点 x。
+   * @param y 原点 y。
+   * @param z 原点 z。
+   * @param r 半径。
+   * @param angle 中心角度（360 制）。
+   * @return 若干中心点位，Quaternion 四项分别对应坐标 X，坐标 Y，坐标 Z，以及当前中心旋转角度。
    */
-  public static Vector3f calculateSmoothFollowPosition(Vec3 current, Vec3 target, float speed, float partialTicks) {
-    float interpolatedSpeed = speed * partialTicks;
-    return new Vector3f(
-      (float) (current.x + (target.x - current.x) * interpolatedSpeed),
-      (float) (current.y + (target.y - current.y) * interpolatedSpeed),
-      (float) (current.z + (target.z - current.z) * interpolatedSpeed)
-    );
-  }
-
-  public static Vector3d[][] getIndexVertexs(final double oX, final double oY, final double oZ,
-                                              final double r) {
-    final Vector3d[][] indexs = new Vector3d[6][];
-    final Vector2d[] based = getBsedIndexVertexs(r);
-
-    final Vector3d[] basedTemp = new Vector3d[6];
-    for (int i = 0; i < 6; i++) {
-      final Vector3d v3d = new Vector3d(based[i].x, oY + r, based[i].y);
-      basedTemp[i] = v3d;
-    }
-    indexs[0] = basedTemp;
-
-    final Quaterniond[] q = new Quaterniond[6];
-    for(int i = 0; i < 6; i++){
-      q[i] = new Quaterniond(based[i].x, 0, based[i].y, 1).rotateX(120f);
-    }
-
-    for(int o = 0; o < 6; o++){
-      final Vector3d[] t = new Vector3d[6];
-      for (int i = 0; i < 6; i++) {
-        int ag = i * 60;
-        q[i].rotateY(ag);
-        t[i] = new Vector3d(q[i].x, oY, q[i].y);
-      }
-      indexs[o] = t;
-    }
-
-
-    return indexs;
-  }
-
-  private static Vector2d[] getBsedIndexVertexs(final double r) {
-    Vector2d[] index = new Vector2d[6];
-    for(int i = 0; i < 6; i++) {
-      index[i] = new Vector2d(indexVertexX(i, r), indexVertexY(i, r));
+  public static Quaterniond[] getIndexVertexs(final double x, final double y, final double z,
+                                              final double r, final double angle) {
+    final var index = getIndexVetexs(r, angle);
+    for (Quaterniond quaterniond : index) {
+      quaterniond.x += x;
+      quaterniond.y += y;
+      quaterniond.z += z;
     }
     return index;
   }
 
-  private static double indexVertexX(final int index, final double r) {
-    return 0 + r * Math.cos(2 * Math.PI / 6 * (index + 120));
+  public static Quaterniond[] getIndexVetexs(final double r, final double angle) {
+    final int range = 7;
+    final double funAngle = 360.0 / range;
+    Quaterniond[] index = new Quaterniond[range];
+
+    for (double i = 0; i < 360.0; i += funAngle) {
+      final double finalAngle = convertTo180(angle + funAngle);
+
+      final double x = r * Math.cos(finalAngle * Math.PI / 180);
+      final double y = r * Math.sin(finalAngle * Math.PI / 180);
+
+      final var op = new Quaterniond(x, 0, y, finalAngle);
+      index[Mth.floor(i)] = op;
+    }
+
+    return index;
   }
 
-  private static double indexVertexY(final int index, final double r) {
-    return 0 + r * Math.sin(2 * Math.PI / 6 * (index + 120));
+  private static double convertTo180(double a) {
+    final boolean flag = a < 0;
+    a = Math.abs(a) % 360;
+    if (flag) {
+      a = -a;
+    }
+
+    if (a > 179) {
+      return -(a - 179 - 180);
+    } else if (a < -180) {
+      return -(a + 180);
+    }
+
+    return a;
   }
 }

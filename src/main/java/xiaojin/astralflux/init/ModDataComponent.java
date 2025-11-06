@@ -2,11 +2,16 @@ package xiaojin.astralflux.init;
 
 import com.mojang.serialization.Codec;
 import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import xiaojin.astralflux.core.AstralFlux;
 import xiaojin.astralflux.init.util.DataComponentUtil;
 
 public final class ModDataComponent extends DataComponentUtil {
+  public static final DeferredRegister<DataComponentType<?>> REGISTRY = AstralFlux.modRegister(BuiltInRegistries.DATA_COMPONENT_TYPE);
+
   public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> BOOLEAN =
     register("boolean", Codec.BOOL, ByteBufCodecs.BOOL);
   public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> Integer =
