@@ -58,7 +58,8 @@ public final class SourceSoulEvents {
       SourceSoulUtil.modifyPauseRecoveryTick(player, -1);
       return;
     }
-    SourceSoulUtil.modifyValue(player, player.getAttributeValue(ModAttributes.SOURCE_SOUL_RECOVERY_VALUE));
+    var attributeValue = player.getAttributeValue(ModAttributes.SOURCE_SOUL_RECOVERY_VALUE);
+    SourceSoulUtil.modify(player, attributeValue);
   }
 
   /**
@@ -66,7 +67,7 @@ public final class SourceSoulEvents {
    */
   public static void onHit(LivingDamageEvent.Post event) {
     var entity = event.getEntity();
-    if (!(event.getNewDamage() > 0)) {
+    if (event.getNewDamage() <= 0) {
       return;
     }
     SourceSoulUtil.setPauseRecoveryTick(entity, SourceSoulUtil.HIT_PAUSE_RECOVERY_TICK);

@@ -1,7 +1,6 @@
 package xiaojin.astralflux.init;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;

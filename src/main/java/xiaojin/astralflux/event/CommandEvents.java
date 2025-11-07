@@ -14,8 +14,8 @@ public final class CommandEvents {
   /**
    * 注册指令
    */
-	@SubscribeEvent
-	public static void register(RegisterCommandsEvent event) {
+  @SubscribeEvent
+  public static void register(RegisterCommandsEvent event) {
     SourceSoulCommands.processSourceSoul(event.getDispatcher());
-	}
+  }
 }

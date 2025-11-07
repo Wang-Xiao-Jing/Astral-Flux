@@ -1,19 +1,15 @@
 package xiaojin.astralflux.util;
 
-import net.minecraft.util.Mth;
-import net.minecraft.world.phys.Vec3;
 import org.joml.Quaterniond;
-import org.joml.Vector2d;
-import org.joml.Vector3d;
-import org.joml.Vector3f;
 
 public final class ModUtil {
   /**
    * 获取环形内全部中心定位。
-   * @param x 原点 x。
-   * @param y 原点 y。
-   * @param z 原点 z。
-   * @param r 半径。
+   *
+   * @param x     原点 x。
+   * @param y     原点 y。
+   * @param z     原点 z。
+   * @param r     半径。
    * @param angle 中心角度（360 制）。
    * @return 若干中心点位，Quaternion 四项分别对应坐标 X，坐标 Y，坐标 Z，以及当前中心旋转角度。
    */

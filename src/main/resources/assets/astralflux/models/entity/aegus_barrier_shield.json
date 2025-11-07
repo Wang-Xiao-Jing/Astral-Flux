@@ -1,0 +1,7 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "astralflux:entity/aegus_barrier/transparent",
+    "layer1": "astralflux:entity/aegus_barrier/shield"
+  }
+}

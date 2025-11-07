@@ -40,12 +40,13 @@ public final class AegusBarrierShields {
    * 构造一个新的Aegus屏障护盾实例
    * 初始化时添加第一个护盾
    */
-  public AegusBarrierShields(){
+  public AegusBarrierShields() {
     this.shields.add(new Shield(0));
   }
 
   /**
    * 设置目标旋转角度
+   *
    * @param xRot X轴旋转角度
    * @param yRot Y轴旋转角度
    */
@@ -57,6 +58,7 @@ public final class AegusBarrierShields {
   /**
    * 每游戏刻更新护盾状态
    * 包括生成新护盾、消耗资源和移除损坏护盾
+   *
    * @param player 拥有此护盾的玩家
    */
   public void tick(Player player) {
@@ -72,15 +74,17 @@ public final class AegusBarrierShields {
     this.xRotO = this.getXRot();
     this.yRotO = this.getYRot();
     // 计算当前旋转角度
-    this.xRot = (float) interpolation(this.getTargetXRot());
-    this.yRot = (float) interpolation(this.getTargetYRot());
+//    this.xRot = (float) interpolation(this.getTargetXRot());
+//    this.yRot = (float) interpolation(this.getTargetYRot());
+    this.xRot = (float) this.getTargetXRot();
+    this.yRot = (float) this.getTargetYRot();
 
     // 每0.2秒尝试添加一个新护盾
     if (this.tics >= 20 * 0.2) {
       if (!clientSide) {
         addShield();
       }
-      if (!this.isTheFirstSideExpands){
+      if (!this.isTheFirstSideExpands) {
         isTheFirstSideExpands = true;
       }
       this.tics = 0;
@@ -113,6 +117,7 @@ public final class AegusBarrierShields {
 
   /**
    * 移除玩家的护盾
+   *
    * @param player 需要移除护盾的玩家
    */
   public void remove(final Player player) {
@@ -132,6 +137,7 @@ public final class AegusBarrierShields {
 
   /**
    * 获取用于渲染的X轴旋转角度（带插值）
+   *
    * @param partialTicks 插值因子
    * @return 插值后的X轴旋转角度
    */
@@ -142,6 +148,7 @@ public final class AegusBarrierShields {
 
   /**
    * 获取用于渲染的Y轴旋转角度（带插值）
+   *
    * @param partialTick 插值因子
    * @return 插值后的Y轴旋转角度
    */
@@ -152,6 +159,7 @@ public final class AegusBarrierShields {
 
   /**
    * 调整护盾的朝向
+   *
    * @param yRot Y轴旋转增量
    * @param xRot X轴旋转增量
    */
@@ -196,6 +204,7 @@ public final class AegusBarrierShields {
 
   /**
    * 设置目标Y轴旋转角度
+   *
    * @param targetYRot 目标Y轴旋转角度
    */
   public void setTargetYRot(float targetYRot) {
@@ -208,6 +217,7 @@ public final class AegusBarrierShields {
 
   /**
    * 设置目标X轴旋转角度
+   *
    * @param targetXRot 目标X轴旋转角度
    */
   public void setTargetXRot(float targetXRot) {
@@ -220,6 +230,7 @@ public final class AegusBarrierShields {
 
   /**
    * 记录旋转设置错误日志
+   *
    * @param rot 无效的旋转值
    */
   private static void rotationSetErrorLog(final float rot) {
@@ -228,6 +239,7 @@ public final class AegusBarrierShields {
 
   /**
    * 添加一个新的护盾
+   *
    * @return 添加结果类型
    */
   @NotNull
@@ -255,6 +267,7 @@ public final class AegusBarrierShields {
 
   /**
    * 获取当前完整护盾数量
+   *
    * @return 完整护盾数量
    */
   public int getShieldCount() {
@@ -271,6 +284,7 @@ public final class AegusBarrierShields {
 
   /**
    * 获取已展开的护盾数量
+   *
    * @return 已展开护盾数
    */
   public int getExpandsCount() {
@@ -303,6 +317,7 @@ public final class AegusBarrierShields {
 
     /**
      * 创建一个新的护盾
+     *
      * @param number 护盾编号
      */
     public Shield(int number) {
@@ -343,8 +358,9 @@ public final class AegusBarrierShields {
   public static final class Sync implements AttachmentSyncHandler<AegusBarrierShields> {
     /**
      * 将护盾数据写入网络缓冲区
-     * @param buf 网络缓冲区
-     * @param attachment 要同步的护盾对象
+     *
+     * @param buf         网络缓冲区
+     * @param attachment  要同步的护盾对象
      * @param initialSync 是否为初始同步
      */
     @Override
@@ -366,8 +382,9 @@ public final class AegusBarrierShields {
 
     /**
      * 从网络缓冲区读取护盾数据
-     * @param holder 附件持有者
-     * @param buf 网络缓冲区
+     *
+     * @param holder        附件持有者
+     * @param buf           网络缓冲区
      * @param previousValue 之前的护盾对象（可为空）
      * @return 读取到的护盾对象
      */

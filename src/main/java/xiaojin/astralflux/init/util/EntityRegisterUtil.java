@@ -1,10 +1,8 @@
 package xiaojin.astralflux.init.util;
 
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.neoforged.neoforge.registries.DeferredHolder;
-import net.neoforged.neoforge.registries.DeferredRegister;
 import xiaojin.astralflux.core.AstralFlux;
 
 import java.util.function.Supplier;

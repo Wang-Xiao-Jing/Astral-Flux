@@ -30,8 +30,8 @@ public final class AstralFluxConfig {
         "gui.details_source_soul_value_type",
         "是否显示源魂详细值");
       this.detailsModifySourceSoulValueSkipWords = define(builder, false,
-          "gui.details_modify_source_soul_value_skip_words",
-          "是否显示修改源魂值跳字");
+        "gui.details_modify_source_soul_value_skip_words",
+        "是否显示修改源魂值跳字");
     }
   }
 

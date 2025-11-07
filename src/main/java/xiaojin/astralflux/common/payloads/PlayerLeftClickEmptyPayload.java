@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import xiaojin.astralflux.core.AstralFlux;
 import xiaojin.astralflux.events.PlayerLeftClickEmptyEvent;
 
-public record PlayerLeftClickEmptyPayload(boolean isMainHand) implements CustomPacketPayload{
+public record PlayerLeftClickEmptyPayload(boolean isMainHand) implements CustomPacketPayload {
   public static final CustomPacketPayload.Type<PlayerLeftClickEmptyPayload> TYPE = new CustomPacketPayload.Type<>(AstralFlux.modRL("player_left_click_empty_payloads"));
 
   public static final StreamCodec<ByteBuf, PlayerLeftClickEmptyPayload> STREAM_CODEC = StreamCodec.composite(
@@ -33,7 +33,7 @@ public record PlayerLeftClickEmptyPayload(boolean isMainHand) implements CustomP
   public static void trigger(final Player player, final InteractionHand hand) {
     var event = new PlayerLeftClickEmptyEvent.Pre(player, hand);
     ModLoader.postEvent(event);
-    if (event.isCanceled()){
+    if (event.isCanceled()) {
       return;
     }
     new PlayerLeftClickEmptyEvent.Post(player, hand);

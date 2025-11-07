@@ -33,7 +33,8 @@ public final class SourceSoulUtil {
   /**
    * 修改源魂
    * <p>
-   * 建议使用该方法这，此方法会触发{@link SourceSoulModifyEvent}事件
+   * 建议使用该方法，此方法会触发{@link SourceSoulModifyEvent}事件
+   *
    * @return 是否修改成功
    */
   public static boolean modify(LivingEntity entity, double consumeValue) {
@@ -42,17 +43,12 @@ public final class SourceSoulUtil {
     }
     var oldSourceSoulValue = getValue(entity);
     var pre = AstralFluxEvents.sourceSoulModifyPre(entity, getValue(entity), consumeValue);
-    if (pre.isCanceled()) {
+    var newConsumeValue = pre.getModifyValue();
+    if (pre.isCanceled() || oldSourceSoulValue + newConsumeValue < 0) {
       return false;
     }
-    var newConsumeValue = pre.getModifyValue();
-    if (newConsumeValue != 0) {
-      if (!(oldSourceSoulValue + newConsumeValue >= 0)) {
-        return false;
-      }
-      modifyValue(entity, Math.min(newConsumeValue, getMaxValue(entity)));
-      AstralFluxEvents.sourceSoulModifyPost(entity, oldSourceSoulValue, newConsumeValue);
-    }
+    setValue(entity, Math.clamp(getValue(entity) + newConsumeValue, 0, getMaxValue(entity)));
+    AstralFluxEvents.sourceSoulModifyPost(entity, oldSourceSoulValue, newConsumeValue);
     return true;
   }
 
@@ -93,10 +89,6 @@ public final class SourceSoulUtil {
     if (!isAttribute(entity)) {
       return;
     }
-    if (entity.hasData(ModDateAttachments.SOURCE_SOUL) && entity instanceof Player) {
-      // 如果没有就调用这个创建
-      entity.getData(ModDateAttachments.SOURCE_SOUL);
-    }
     entity.setData(ModDateAttachments.SOURCE_SOUL, targetValue);
   }
 
@@ -104,7 +96,7 @@ public final class SourceSoulUtil {
    * 在原来的基础上修改（增加）源魂值
    */
   public static void modifyValue(LivingEntity entity, double value) {
-    if (!isAttribute(entity)) {
+    if (!isAttribute(entity) || value == 0) {
       return;
     }
     setValue(entity, getValue(entity) + value);

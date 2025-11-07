@@ -2,9 +2,7 @@ package xiaojin.astralflux.init.util;
 
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.registries.DeferredItem;
-import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
-import xiaojin.astralflux.core.AstralFlux;
 
 import java.util.function.Function;
 

@@ -50,7 +50,7 @@ public final class PlayerEvents {
    */
   @SubscribeEvent
   public static void livingDamageEventPost(LivingDamageEvent.Post event) {
-    if(!(event.getEntity() instanceof Player player)) {
+    if (!(event.getEntity() instanceof Player player)) {
       return;
     }
     SourceSoulEvents.onHit(event);
@@ -61,14 +61,14 @@ public final class PlayerEvents {
    */
   @SubscribeEvent
   public static void livingIncomingDamageEvent(LivingIncomingDamageEvent event) {
-    if(!(event.getEntity() instanceof Player player)) {
+    if (!(event.getEntity() instanceof Player player)) {
       return;
     }
     AegusBarrierEvents.onHurt(event);
   }
 
   /**
-   * 消耗源魂事件
+   * 修改源魂事件
    */
   @SubscribeEvent
   public static <T extends LivingEntity> void sourceSoulModifyEventPost(SourceSoulModifyEvent.Post<T> event) {

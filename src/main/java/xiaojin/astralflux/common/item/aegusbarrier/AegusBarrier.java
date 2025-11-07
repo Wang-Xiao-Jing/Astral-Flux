@@ -14,7 +14,7 @@ import xiaojin.astralflux.init.ModDataComponent;
 import xiaojin.astralflux.init.ModDateAttachments;
 import xiaojin.astralflux.util.SourceSoulUtil;
 
-public class AegusBarrier extends Item implements IModifySourceSouItem , ItemLeftClickEmpty {
+public class AegusBarrier extends Item implements IModifySourceSouItem, ItemLeftClickEmpty {
 
   public AegusBarrier(final Properties properties) {
     super(properties.component(ModDataComponent.BOOLEAN, false));

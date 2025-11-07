@@ -2,9 +2,6 @@ package xiaojin.astralflux.init.util;
 
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.registries.DeferredHolder;
-import net.neoforged.neoforge.registries.DeferredRegister;
-import net.neoforged.neoforge.registries.NeoForgeRegistries;
-import xiaojin.astralflux.core.AstralFlux;
 
 import java.util.function.Supplier;
 
