@@ -6,15 +6,14 @@ import net.neoforged.neoforge.common.BooleanAttribute;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import org.jetbrains.annotations.NotNull;
 import xiaojin.astralflux.core.AstralFlux;
-
-import static xiaojin.astralflux.init.ModAttributes.REGISTRY;
+import xiaojin.astralflux.init.ModAttributes;
 
 public abstract class AttributeRegisterUtil {
 
   @NotNull
   protected static <T extends Attribute> DeferredHolder<Attribute, T> register
     (String name, T attribute) {
-    return REGISTRY.register(name, () -> attribute);
+    return ModAttributes.REGISTRY.register(name, () -> attribute);
   }
 
   @NotNull

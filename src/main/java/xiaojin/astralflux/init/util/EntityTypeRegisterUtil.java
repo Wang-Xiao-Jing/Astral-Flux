@@ -4,10 +4,9 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import xiaojin.astralflux.core.AstralFlux;
+import xiaojin.astralflux.init.ModEntityTypes;
 
 import java.util.function.Supplier;
-
-import static xiaojin.astralflux.init.ModEntityTypes.REGISTRY;
 
 public abstract class EntityTypeRegisterUtil {
 
@@ -18,6 +17,6 @@ public abstract class EntityTypeRegisterUtil {
 
   private static <T extends Entity> DeferredHolder<EntityType<?>, EntityType<T>> register
     (String name, Supplier<EntityType<T>> entityType) {
-    return REGISTRY.register(name, entityType);
+    return ModEntityTypes.REGISTRY.register(name, entityType);
   }
 }

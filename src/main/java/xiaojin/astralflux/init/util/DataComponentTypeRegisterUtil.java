@@ -5,10 +5,9 @@ import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.neoforged.neoforge.registries.DeferredHolder;
+import xiaojin.astralflux.init.ModDataComponentTypes;
 
 import java.util.function.UnaryOperator;
-
-import static xiaojin.astralflux.init.ModDataComponentTypes.REGISTRY;
 
 public abstract class DataComponentTypeRegisterUtil {
 
@@ -19,6 +18,6 @@ public abstract class DataComponentTypeRegisterUtil {
 
   protected static <T> DeferredHolder<DataComponentType<?>, DataComponentType<T>> register
     (String name, UnaryOperator<DataComponentType.Builder<T>> builder) {
-    return REGISTRY.register(name, () -> builder.apply(DataComponentType.builder()).build());
+    return ModDataComponentTypes.REGISTRY.register(name, () -> builder.apply(DataComponentType.builder()).build());
   }
 }
