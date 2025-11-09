@@ -14,9 +14,9 @@ public final class ModCreativeModeTabs extends CreativeModeTabRegisterUtil {
   public static final DeferredRegister<CreativeModeTab> REGISTRY = AstralFlux.modRegister(BuiltInRegistries.CREATIVE_MODE_TAB);
 
   public static final DeferredHolder<CreativeModeTab, CreativeModeTab> ASTRAL_FLUX_TAB =
-    REGISTRY.register("astralflux_tab", () -> CreativeModeTab.builder()
+    REGISTRY.register(AstralFlux.ID + "_tab", () -> CreativeModeTab.builder()
       .icon(() -> ModItems.AEGUS_BARRIER.value().getDefaultInstance())
-      .title(Component.translatable("itemGroup.astralflux_tab"))
+      .title(Component.translatable("itemGroup." + AstralFlux.ID + "_tab" + "_tab"))
       .displayItems((pr, out) -> ModItems.REGISTRY.getEntries().stream()
         .map(Supplier::get)
         // 导入物品注册表的所有物品

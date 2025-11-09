@@ -27,7 +27,7 @@ public class DatagenI18ZhCn extends LanguageProvider {
 
   @Override
   protected void addTranslations() {
-    add("itemGroup.astralflux_tab",
+    add("itemGroup." + AstralFlux.ID + "_tab",
       "流光轻逝");
     add(AstralFluxKey.KEY_CATEGORIES,
       "流光轻逝");
