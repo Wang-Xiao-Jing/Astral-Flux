@@ -8,7 +8,7 @@ import net.neoforged.neoforge.attachment.IAttachmentHolder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xiaojin.astralflux.core.AstralFlux;
-import xiaojin.astralflux.init.ModDateAttachments;
+import xiaojin.astralflux.init.ModAttachmentTypes;
 import xiaojin.astralflux.util.SourceSoulUtil;
 
 import java.util.ArrayList;
@@ -121,7 +121,7 @@ public final class AegusBarrierShields {
    * @param player 需要移除护盾的玩家
    */
   public void remove(final Player player) {
-    player.removeData(ModDateAttachments.AEGUS_BARRIER_SHIELD);
+    player.removeData(ModAttachmentTypes.AEGUS_BARRIER_SHIELD);
   }
 
   public boolean interdict(int shieldNumber) {

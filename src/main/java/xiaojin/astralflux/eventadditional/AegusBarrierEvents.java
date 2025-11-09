@@ -7,12 +7,12 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import xiaojin.astralflux.common.item.aegusbarrier.AegusBarrierShields;
-import xiaojin.astralflux.init.ModDateAttachments;
+import xiaojin.astralflux.init.ModAttachmentTypes;
 
 public final class AegusBarrierEvents {
   public static void onTick(final PlayerTickEvent.Pre event) {
     final var entity = event.getEntity();
-    var barrierShields = entity.getExistingDataOrNull(ModDateAttachments.AEGUS_BARRIER_SHIELD);
+    var barrierShields = entity.getExistingDataOrNull(ModAttachmentTypes.AEGUS_BARRIER_SHIELD);
     if (barrierShields == null) {
       return;
     }
@@ -26,7 +26,7 @@ public final class AegusBarrierEvents {
       return;
     }
 
-    var barrierShields = player.getExistingDataOrNull(ModDateAttachments.AEGUS_BARRIER_SHIELD);
+    var barrierShields = player.getExistingDataOrNull(ModAttachmentTypes.AEGUS_BARRIER_SHIELD);
     if (barrierShields == null) {
       return;
     }

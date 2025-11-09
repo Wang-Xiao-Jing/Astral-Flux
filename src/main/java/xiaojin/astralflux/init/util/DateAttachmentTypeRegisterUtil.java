@@ -5,9 +5,9 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.util.function.Supplier;
 
-import static xiaojin.astralflux.init.ModDateAttachments.REGISTRY;
+import static xiaojin.astralflux.init.ModAttachmentTypes.REGISTRY;
 
-public abstract class DateAttachmentRegisterUtil {
+public abstract class DateAttachmentTypeRegisterUtil {
 
   protected static <T> DeferredHolder<AttachmentType<?>, AttachmentType<T>> register
     (String name, AttachmentType.Builder<T> factory) {

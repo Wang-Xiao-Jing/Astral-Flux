@@ -8,9 +8,9 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.util.function.UnaryOperator;
 
-import static xiaojin.astralflux.init.ModDataComponent.REGISTRY;
+import static xiaojin.astralflux.init.ModDataComponentTypes.REGISTRY;
 
-public abstract class DataComponentUtil {
+public abstract class DataComponentTypeRegisterUtil {
 
   protected static <T> DeferredHolder<DataComponentType<?>, DataComponentType<T>> register
     (String name, Codec<T> codec, StreamCodec<? super RegistryFriendlyByteBuf, T> streamCodec) {

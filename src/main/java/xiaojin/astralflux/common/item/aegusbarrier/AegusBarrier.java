@@ -10,14 +10,14 @@ import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
 import xiaojin.astralflux.api.ItemLeftClickEmpty;
 import xiaojin.astralflux.api.sourcesoul.IModifySourceSouItem;
-import xiaojin.astralflux.init.ModDataComponent;
-import xiaojin.astralflux.init.ModDateAttachments;
+import xiaojin.astralflux.init.ModDataComponentTypes;
+import xiaojin.astralflux.init.ModAttachmentTypes;
 import xiaojin.astralflux.util.SourceSoulUtil;
 
 public class AegusBarrier extends Item implements IModifySourceSouItem, ItemLeftClickEmpty {
 
   public AegusBarrier(final Properties properties) {
-    super(properties.component(ModDataComponent.BOOLEAN, false));
+    super(properties.component(ModDataComponentTypes.BOOLEAN, false));
   }
 
   @Override
@@ -43,9 +43,9 @@ public class AegusBarrier extends Item implements IModifySourceSouItem, ItemLeft
     }
 
     // 添加护盾
-    var shields = player.getExistingDataOrNull(ModDateAttachments.AEGUS_BARRIER_SHIELD);
+    var shields = player.getExistingDataOrNull(ModAttachmentTypes.AEGUS_BARRIER_SHIELD);
     if (shields == null) {
-      shields = player.getData(ModDateAttachments.AEGUS_BARRIER_SHIELD);
+      shields = player.getData(ModAttachmentTypes.AEGUS_BARRIER_SHIELD);
     } else if (shields.getExpandsCount() >= 7) {
       // 添加失败 因为已经达到最大数量
       return InteractionResultHolder.fail(itemInHand);
@@ -77,8 +77,8 @@ public class AegusBarrier extends Item implements IModifySourceSouItem, ItemLeft
     if (!(livingEntity instanceof Player player) || level.isClientSide() || remainingUseDuration > 0) {
       return;
     }
-    if (livingEntity.hasData(ModDateAttachments.AEGUS_BARRIER_SHIELD)) {
-      livingEntity.getData(ModDateAttachments.AEGUS_BARRIER_SHIELD);
+    if (livingEntity.hasData(ModAttachmentTypes.AEGUS_BARRIER_SHIELD)) {
+      livingEntity.getData(ModAttachmentTypes.AEGUS_BARRIER_SHIELD);
     }
     enterCD(stack, player);
   }
@@ -105,7 +105,7 @@ public class AegusBarrier extends Item implements IModifySourceSouItem, ItemLeft
 
   @Override
   public void leftClick(final ItemStack stack, final Player player) {
-    var barrierShields = player.getExistingDataOrNull(ModDateAttachments.AEGUS_BARRIER_SHIELD);
+    var barrierShields = player.getExistingDataOrNull(ModAttachmentTypes.AEGUS_BARRIER_SHIELD);
     if (barrierShields == null) {
       return;
     }

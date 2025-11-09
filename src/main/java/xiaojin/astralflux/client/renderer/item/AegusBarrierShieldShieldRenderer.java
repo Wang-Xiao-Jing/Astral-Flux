@@ -23,11 +23,9 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
 import xiaojin.astralflux.client.renderer.ModRender;
 import xiaojin.astralflux.core.AstralFlux;
-import xiaojin.astralflux.init.ModDateAttachments;
+import xiaojin.astralflux.init.ModAttachmentTypes;
 
 import java.util.List;
 
@@ -60,7 +58,7 @@ public class AegusBarrierShieldShieldRenderer implements ModRender {
       return;
     }
 
-    var barrierShields = player.getExistingDataOrNull(ModDateAttachments.AEGUS_BARRIER_SHIELD);
+    var barrierShields = player.getExistingDataOrNull(ModAttachmentTypes.AEGUS_BARRIER_SHIELD);
     if (barrierShields == null) {
       return;
     }

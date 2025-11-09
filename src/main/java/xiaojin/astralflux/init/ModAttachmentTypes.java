@@ -8,9 +8,9 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import xiaojin.astralflux.common.item.aegusbarrier.AegusBarrierShields;
 import xiaojin.astralflux.core.AstralFlux;
-import xiaojin.astralflux.init.util.DateAttachmentRegisterUtil;
+import xiaojin.astralflux.init.util.DateAttachmentTypeRegisterUtil;
 
-public final class ModDateAttachments extends DateAttachmentRegisterUtil {
+public final class ModAttachmentTypes extends DateAttachmentTypeRegisterUtil {
   public static final DeferredRegister<AttachmentType<?>> REGISTRY = AstralFlux.modRegister(NeoForgeRegistries.ATTACHMENT_TYPES);
 
   public static final DeferredHolder<AttachmentType<?>, AttachmentType<Double>> SOURCE_SOUL = register(

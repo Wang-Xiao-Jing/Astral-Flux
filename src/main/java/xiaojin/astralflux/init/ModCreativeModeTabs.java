@@ -6,11 +6,11 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import xiaojin.astralflux.core.AstralFlux;
-import xiaojin.astralflux.init.util.CreativeModeTabUtil;
+import xiaojin.astralflux.init.util.CreativeModeTabRegisterUtil;
 
 import java.util.function.Supplier;
 
-public final class ModCreativeModeTabs extends CreativeModeTabUtil {
+public final class ModCreativeModeTabs extends CreativeModeTabRegisterUtil {
   public static final DeferredRegister<CreativeModeTab> REGISTRY = AstralFlux.modRegister(BuiltInRegistries.CREATIVE_MODE_TAB);
 
   public static final DeferredHolder<CreativeModeTab, CreativeModeTab> ASTRAL_FLUX_TAB =

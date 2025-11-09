@@ -7,9 +7,9 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import xiaojin.astralflux.core.AstralFlux;
-import xiaojin.astralflux.init.util.DataComponentUtil;
+import xiaojin.astralflux.init.util.DataComponentTypeRegisterUtil;
 
-public final class ModDataComponent extends DataComponentUtil {
+public final class ModDataComponentTypes extends DataComponentTypeRegisterUtil {
   public static final DeferredRegister<DataComponentType<?>> REGISTRY = AstralFlux.modRegister(BuiltInRegistries.DATA_COMPONENT_TYPE);
 
   public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> BOOLEAN =
