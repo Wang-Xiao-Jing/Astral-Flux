@@ -10,7 +10,7 @@ import xiaojin.astralflux.core.AstralFlux;
 
 import java.util.Map;
 
-@OnlyIn(Dist.CLIENT)
+
 @EventBusSubscriber(modid = AstralFlux.ID, value = Dist.CLIENT)
 public final class ModMaterialAtlases {
 

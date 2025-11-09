@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.mojang.blaze3d.platform.InputConstants.KEY_F6;
 
-@OnlyIn(Dist.CLIENT)
+
 @EventBusSubscriber(modid = AstralFlux.ID, value = Dist.CLIENT)
 public final class AstralFluxKey {
   public static final String KEY_CATEGORIES = "key.categories." + AstralFlux.ID;

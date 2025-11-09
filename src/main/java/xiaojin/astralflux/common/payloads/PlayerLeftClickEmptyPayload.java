@@ -36,7 +36,7 @@ public record PlayerLeftClickEmptyPayload(boolean isMainHand) implements CustomP
     if (event.isCanceled()) {
       return;
     }
-    new PlayerLeftClickEmptyEvent.Post(player, hand);
+    ModLoader.postEvent(new PlayerLeftClickEmptyEvent.Post(player, hand));
   }
 
   /**

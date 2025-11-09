@@ -3,6 +3,7 @@ package xiaojin.astralflux.event.entity;
 import ctn.ctnapi.util.PayloadUtil;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.DifficultyChangeEvent;
@@ -12,6 +13,7 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import xiaojin.astralflux.api.ItemLeftClickEmpty;
+import xiaojin.astralflux.client.gui.layers.SourceSoulBarLayerDraw;
 import xiaojin.astralflux.common.payloads.PlayerLeftClickEmptyPayload;
 import xiaojin.astralflux.eventadditional.AegusBarrierEvents;
 import xiaojin.astralflux.eventadditional.SourceSoulEvents;
@@ -41,8 +43,8 @@ public final class PlayerEvents {
    */
   @SubscribeEvent
   public static void playerTickEventPre(PlayerTickEvent.Pre event) {
-    SourceSoulEvents.onTick(event);
     AegusBarrierEvents.onTick(event);
+    SourceSoulEvents.onTick(event);
   }
 
   /**
@@ -71,8 +73,16 @@ public final class PlayerEvents {
    * 修改源魂事件
    */
   @SubscribeEvent
-  public static <T extends LivingEntity> void sourceSoulModifyEventPost(SourceSoulModifyEvent.Post<T> event) {
+  public static <T extends LivingEntity> void sourceSoulModifyEvent$Post(SourceSoulModifyEvent.Post<T> event) {
+  }
+
+  /**
+   * 修改源魂事件
+   */
+  @SubscribeEvent(priority = EventPriority.LOWEST)
+  public static <T extends LivingEntity> void sourceSoulModifyEvent$Post$Lowest(SourceSoulModifyEvent.Post<T> event) {
     SourceSoulEvents.onConsume(event);
+    SourceSoulBarLayerDraw.INSTANCE.addModify(event.getModifyValue());
   }
 
   /**

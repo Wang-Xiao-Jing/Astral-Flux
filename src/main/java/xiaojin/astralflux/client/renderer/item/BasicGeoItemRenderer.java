@@ -8,7 +8,7 @@ import software.bernie.geckolib.model.GeoModel;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
 import xiaojin.astralflux.client.model.BasicGeoModel;
 
-@OnlyIn(Dist.CLIENT)
+
 public class BasicGeoItemRenderer<T extends Item & GeoAnimatable> extends GeoItemRenderer<T> {
   public BasicGeoItemRenderer(GeoModel<T> model) {
     super(model);

@@ -14,7 +14,7 @@ import static net.minecraft.client.renderer.RenderStateShard.*;
 import static net.minecraft.client.renderer.RenderType.CompositeState.builder;
 import static net.minecraft.client.renderer.RenderType.create;
 
-@OnlyIn(Dist.CLIENT)
+
 public final class ModRenderType {
   public static final Function<ResourceLocation, RenderType> ICON =
     Util.memoize(texture -> create("icon",

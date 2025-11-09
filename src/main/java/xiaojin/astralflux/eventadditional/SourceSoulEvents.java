@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static xiaojin.astralflux.util.SourceSoulUtil.setPauseRecoveryTick;
+
 public final class SourceSoulEvents {
   /**
    * 难度改变
@@ -57,6 +59,8 @@ public final class SourceSoulEvents {
     if (!SourceSoulUtil.allowSourceSoulRecover(player)) {
       SourceSoulUtil.modifyPauseRecoveryTick(player, -1);
       return;
+    } else {
+      SourceSoulUtil.setPauseRecoveryTick(player, 0);
     }
     var attributeValue = player.getAttributeValue(ModAttributes.SOURCE_SOUL_RECOVERY_VALUE);
     SourceSoulUtil.modify(player, attributeValue);
@@ -70,7 +74,7 @@ public final class SourceSoulEvents {
     if (event.getNewDamage() <= 0) {
       return;
     }
-    SourceSoulUtil.setPauseRecoveryTick(entity, SourceSoulUtil.HIT_PAUSE_RECOVERY_TICK);
+    setPauseRecoveryTick(entity, SourceSoulUtil.HIT_PAUSE_RECOVERY_TICK);
   }
 
   /**
@@ -80,6 +84,6 @@ public final class SourceSoulEvents {
     if (event.getModifyValue() >= 0) {
       return;
     }
-    SourceSoulUtil.setPauseRecoveryTick(event.getEntity(), SourceSoulUtil.CONSUME_PAUSE_RECOVERY_TICK);
+    setPauseRecoveryTick(event.getEntity(), SourceSoulUtil.CONSUME_PAUSE_RECOVERY_TICK);
   }
 }

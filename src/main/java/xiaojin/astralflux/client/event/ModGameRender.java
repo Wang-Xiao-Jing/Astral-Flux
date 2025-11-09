@@ -9,7 +9,7 @@ import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import xiaojin.astralflux.client.renderer.item.AegusBarrierShieldShieldRenderer;
 import xiaojin.astralflux.core.AstralFlux;
 
-@OnlyIn(Dist.CLIENT)
+
 @EventBusSubscriber(modid = AstralFlux.ID, value = Dist.CLIENT)
 public final class ModGameRender {
 

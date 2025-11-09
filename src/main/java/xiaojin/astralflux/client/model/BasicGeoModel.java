@@ -8,7 +8,7 @@ import software.bernie.geckolib.animatable.GeoAnimatable;
 import software.bernie.geckolib.model.GeoModel;
 import xiaojin.astralflux.core.AstralFlux;
 
-@OnlyIn(Dist.CLIENT)
+
 public class BasicGeoModel<T extends GeoAnimatable> extends GeoModel<T> {
   public final ResourceLocation modelPath;
   public final ResourceLocation texturePath;
