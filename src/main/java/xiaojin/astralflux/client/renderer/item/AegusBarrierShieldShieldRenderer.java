@@ -2,6 +2,7 @@ package xiaojin.astralflux.client.renderer.item;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
 import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -25,7 +26,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import xiaojin.astralflux.client.renderer.ModRender;
 import xiaojin.astralflux.core.AstralFlux;
-import xiaojin.astralflux.init.ModAttachmentTypes;
 
 import java.util.List;
 
@@ -71,7 +71,6 @@ public class AegusBarrierShieldShieldRenderer implements ModRender {
     var combinedOverlay = OverlayTexture.NO_OVERLAY;
 
     poseStack.pushPose();
-
     poseStack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
     // 将偏航角和俯仰角转换为方向向量
     var yaw = barrierShields.getViewYRot(partialTicks) * Mth.DEG_TO_RAD;
@@ -86,11 +85,24 @@ public class AegusBarrierShieldShieldRenderer implements ModRender {
     var eyePosition = player.getEyePosition(partialTicks);
     var pos = eyePosition.add(direction.scale(1.5f));
     poseStack.translate(pos.x, pos.y, pos.z);
+
     poseStack.mulPose(camera.rotation());
 
-    renderModel(poseStack, bufferSource, combinedLight, combinedOverlay);
+    // TODO 这边 45 改成实际要旋转的角度
+    // rotRound(poseStack, 45);
 
+    renderModel(poseStack, bufferSource, combinedLight, combinedOverlay);
     poseStack.popPose();
+
+  }
+
+  private void rotRound(final PoseStack ps, final float angle) {
+    final double x = 1.5 * Math.cos(angle * Math.PI / 180);
+    final double y = 1.5 * Math.sin(angle * Math.PI / 180);
+
+    ps.translate(0, 0, 1.5);
+    ps.translate(-y, 0, -x);
+    ps.mulPose(Axis.YP.rotationDegrees(angle));
   }
 
   private void renderModel(final PoseStack poseStack, final MultiBufferSource.BufferSource bufferSource, final int combinedLight, final int combinedOverlay) {
