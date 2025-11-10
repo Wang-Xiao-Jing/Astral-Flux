@@ -96,12 +96,11 @@ public class AegusBarrierShieldShieldRenderer implements ModRender {
     poseStack.mulPose(Axis.YP.rotation(-yaw));
     poseStack.mulPose(Axis.XP.rotation(pitch));
 
-    var indexVetexs = ModUtil.getIndexVetexs(1.5f, 0);
+    var indexVetexs = ModUtil.getIndexVetexs(1.5f);
     for (var number : barrierShields.getShieldNumbers()) {
       poseStack.pushPose();
       var indexVetex = indexVetexs[number];
-      var key = indexVetex.getKey();
-      poseStack.translate(key.x(), key.y(), key.z());
+      poseStack.translate(indexVetex.x(), indexVetex.y(), indexVetex.z());
 //      poseStack.mulPose(indexVetex.getValue().get(new Quaternionf()));
       renderModel(poseStack, bufferSource, combinedLight, combinedOverlay);
       poseStack.popPose();
