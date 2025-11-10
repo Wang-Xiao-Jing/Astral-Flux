@@ -2,6 +2,7 @@ package xiaojin.astralflux.init;
 
 import com.mojang.serialization.Codec;
 import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -27,6 +28,11 @@ public final class ModAttachmentTypes extends DateAttachmentTypeRegisterUtil {
       .copyOnDeath());
   public static final DeferredHolder<AttachmentType<?>, AttachmentType<AegusBarrierShields>> AEGUS_BARRIER_SHIELD = register(
     "aegus_barrier_shield", AttachmentType
-      .builder(AegusBarrierShields::new)
+      .builder((holder) -> {
+        if (!(holder instanceof Player player)) {
+          throw new IllegalArgumentException("AEGUS_BARRIER_SHIELD can only be attached to a player");
+        }
+        return new AegusBarrierShields(player.getUUID());
+      })
       .sync(new AegusBarrierShields.Sync()));
 }

@@ -55,7 +55,7 @@ public class AegusBarrierItem extends Item implements IModifySourceSouItem, Item
       return InteractionResultHolder.fail(itemInHand);
     }
     // 添加未完全成型的护盾
-    shields.addShield();
+    shields.addShield(player);
     player.startUsingItem(usedHand);
     return InteractionResultHolder.consume(itemInHand);
   }

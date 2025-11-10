@@ -24,10 +24,17 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Quaterniond;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
 import xiaojin.astralflux.client.renderer.ModRender;
 import xiaojin.astralflux.core.AstralFlux;
+import xiaojin.astralflux.init.ModAttachmentTypes;
+import xiaojin.astralflux.util.ModUtil;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 埃癸斯壁垒盾牌渲染
@@ -86,23 +93,21 @@ public class AegusBarrierShieldShieldRenderer implements ModRender {
     var pos = eyePosition.add(direction.scale(1.5f));
     poseStack.translate(pos.x, pos.y, pos.z);
 
-    poseStack.mulPose(camera.rotation());
+    poseStack.mulPose(Axis.YP.rotation(-yaw));
+    poseStack.mulPose(Axis.XP.rotation(pitch));
 
-    // TODO 这边 45 改成实际要旋转的角度
-    // rotRound(poseStack, 45);
+    var indexVetexs = ModUtil.getIndexVetexs(1.5f, 0);
+    for (var number : barrierShields.getShieldNumbers()) {
+      poseStack.pushPose();
+      var indexVetex = indexVetexs[number];
+      var key = indexVetex.getKey();
+      poseStack.translate(key.x(), key.y(), key.z());
+//      poseStack.mulPose(indexVetex.getValue().get(new Quaternionf()));
+      renderModel(poseStack, bufferSource, combinedLight, combinedOverlay);
+      poseStack.popPose();
+    }
 
-    renderModel(poseStack, bufferSource, combinedLight, combinedOverlay);
     poseStack.popPose();
-
-  }
-
-  private void rotRound(final PoseStack ps, final float angle) {
-    final double x = 1.5 * Math.cos(angle * Math.PI / 180);
-    final double y = 1.5 * Math.sin(angle * Math.PI / 180);
-
-    ps.translate(0, 0, 1.5);
-    ps.translate(-y, 0, -x);
-    ps.mulPose(Axis.YP.rotationDegrees(angle));
   }
 
   private void renderModel(final PoseStack poseStack, final MultiBufferSource.BufferSource bufferSource, final int combinedLight, final int combinedOverlay) {

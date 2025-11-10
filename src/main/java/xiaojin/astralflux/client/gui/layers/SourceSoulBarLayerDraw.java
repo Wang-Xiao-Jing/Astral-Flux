@@ -69,7 +69,7 @@ public class SourceSoulBarLayerDraw implements LayeredDraw.Layer {
   }
 
   public void display() {
-    this.displayTime = 60 ;
+    this.displayTime = 100;
   }
 
   public int getSourceSoulBarHeight() {

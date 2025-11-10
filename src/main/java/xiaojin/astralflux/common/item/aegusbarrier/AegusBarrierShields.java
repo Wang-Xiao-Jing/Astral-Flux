@@ -13,6 +13,7 @@ import xiaojin.astralflux.util.SourceSoulUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Aegus屏障护盾管理类
@@ -35,13 +36,15 @@ public final class AegusBarrierShields {
   private boolean isTheFirstSideExpands;
   private List<Shield> shields = new ArrayList<>(7);
   private int expandsCount;
+  private final UUID playerUUID;
 
   /**
    * 构造一个新的Aegus屏障护盾实例
    * 初始化时添加第一个护盾
    */
-  public AegusBarrierShields() {
+  public AegusBarrierShields(UUID playerUUID) {
     this.shields.add(new Shield(0));
+    this.playerUUID = playerUUID;
   }
 
   /**
@@ -63,27 +66,25 @@ public final class AegusBarrierShields {
    */
   public void tick(Player player) {
     var level = player.level();
-    var clientSide = level.isClientSide();
+
+    // 客户端
+    if (level.isClientSide()) {
+      move();
+      return;
+    }
+
     var value = SourceSoulUtil.getValue(player);
+    // 玩家已无源魂值
     if (value <= 0 || shields.isEmpty()) {
       remove(player);
       return;
     }
 
-    // 更新旋转角度插值用的旧值
-    this.xRotO = this.getXRot();
-    this.yRotO = this.getYRot();
-    // 计算当前旋转角度
-//    this.xRot = (float) interpolation(this.getTargetXRot());
-//    this.yRot = (float) interpolation(this.getTargetYRot());
-    this.xRot = (float) this.getTargetXRot();
-    this.yRot = (float) this.getTargetYRot();
+    move();
 
     // 每0.2秒尝试添加一个新护盾
     if (this.tics >= 20 * 0.2) {
-      if (!clientSide) {
-        addShield();
-      }
+      addShield(player);
       if (!this.isTheFirstSideExpands) {
         isTheFirstSideExpands = true;
       }
@@ -93,9 +94,7 @@ public final class AegusBarrierShields {
     // 如果第一面已展开，每3秒消耗一次资源维持护盾
     if (this.isTheFirstSideExpands && this.consumeTics >= 20 * 3) {
       if (!SourceSoulUtil.modify(player, CONSUME_VALUE)) {
-        if (!clientSide) {
-          remove(player);
-        }
+        remove(player);
         return;
       }
       this.consumeTics = 0;
@@ -109,6 +108,21 @@ public final class AegusBarrierShields {
       this.consumeTics++;
     }
     this.tics++;
+
+    syncData(player);
+  }
+
+  private void move() {
+    this.xRotO = this.getXRot();
+    this.yRotO = this.getYRot();
+//    this.xRot = (float) interpolation(this.getTargetXRot());
+//    this.yRot = (float) interpolation(this.getTargetYRot());
+    this.xRot = (float) this.getTargetXRot();
+    this.yRot = (float) this.getTargetYRot();
+  }
+
+  private void syncData(Player player) {
+    player.syncData(ModAttachmentTypes.AEGUS_BARRIER_SHIELD);
   }
 
   private static double interpolation(final float x) {
@@ -122,8 +136,15 @@ public final class AegusBarrierShields {
    */
   public void remove(final Player player) {
     player.removeData(ModAttachmentTypes.AEGUS_BARRIER_SHIELD);
+    syncData(player);
   }
 
+  /**
+   * 拦截指定编号的护盾
+   *
+   * @param shieldNumber 要拦截的护盾编号
+   * @return 如果成功拦截护盾返回true，否则返回false
+   */
   public boolean interdict(int shieldNumber) {
     return shields.stream()
       .filter(shield -> shield.isNumber(shieldNumber))
@@ -244,8 +265,9 @@ public final class AegusBarrierShields {
    */
   @NotNull
   @SuppressWarnings("UnusedReturnValue")
-  public AddType addShield() {
-    if (this.expandsCount == 7) {
+  public AddType addShield(Player player) {
+    if (this.expandsCount == 6) {
+      syncData(player);
       return AddType.FAILURE;
     }
     // 获取最后一个未完全成型的护盾
@@ -262,6 +284,7 @@ public final class AegusBarrierShields {
     this.expandsCount++;
     var shield = new Shield(this.shields.stream().map(Shield::getNumber).max(Integer::compareTo).orElse(-1) + 1);
     this.shields.addLast(shield);
+    syncData(player);
     return type;
   }
 
@@ -272,6 +295,13 @@ public final class AegusBarrierShields {
    */
   public int getShieldCount() {
     return this.shields.size() - (this.shields.getLast().isIntact ? 0 : 1);
+  }
+
+  /**
+   * 获取可用护盾的编号
+   */
+  public int[] getShieldNumbers() {
+    return this.shields.stream().mapToInt(Shield::getNumber).toArray();
   }
 
   public boolean isTheFirstSideExpands() {
@@ -289,6 +319,10 @@ public final class AegusBarrierShields {
    */
   public int getExpandsCount() {
     return expandsCount;
+  }
+
+  public UUID getPlayerUUID() {
+    return playerUUID;
   }
 
   /**
@@ -365,8 +399,9 @@ public final class AegusBarrierShields {
      */
     @Override
     public void write(final RegistryFriendlyByteBuf buf, final AegusBarrierShields attachment, final boolean initialSync) {
-      buf.writeInt(attachment.tics);
-      buf.writeInt(attachment.consumeTics);
+      buf.writeUUID(attachment.playerUUID);
+//      buf.writeInt(attachment.tics);
+//      buf.writeInt(attachment.consumeTics);
       buf.writeFloat(attachment.xRot);
       buf.writeFloat(attachment.yRot);
       buf.writeFloat(attachment.xRotO);
@@ -376,7 +411,7 @@ public final class AegusBarrierShields {
       buf.writeArray(attachment.shields.toArray(Shield[]::new), (buf1, shield) -> {
         buf1.writeInt(shield.number);
         buf1.writeBoolean(shield.isIntact);
-        buf1.writeBoolean(shield.isRemove);
+//        buf1.writeBoolean(shield.isRemove);
       });
     }
 
@@ -390,9 +425,10 @@ public final class AegusBarrierShields {
      */
     @Override
     public @NotNull AegusBarrierShields read(final IAttachmentHolder holder, final RegistryFriendlyByteBuf buf, @Nullable final AegusBarrierShields previousValue) {
-      var shield = previousValue != null ? previousValue : new AegusBarrierShields();
-      shield.tics = buf.readInt();
-      shield.consumeTics = buf.readInt();
+      var uuid = buf.readUUID();
+      var shield = previousValue == null ? new AegusBarrierShields(uuid) : previousValue;
+//      shield.tics = buf.readInt();
+//      shield.consumeTics = buf.readInt();
       shield.xRot = buf.readFloat();
       shield.yRot = buf.readFloat();
       shield.xRotO = buf.readFloat();
@@ -402,7 +438,7 @@ public final class AegusBarrierShields {
       shield.shields = new ArrayList<>(List.of(buf.readArray(Shield[]::new, buf1 -> {
         var shield1 = new Shield(buf1.readInt());
         shield1.isIntact = buf1.readBoolean();
-        shield1.isRemove = buf1.readBoolean();
+//        shield1.isRemove = buf1.readBoolean();
         return shield1;
       })));
       return shield;
