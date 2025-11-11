@@ -2,7 +2,7 @@ package xiaojin.astralflux.init.util;
 
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.registries.DeferredHolder;
-import xiaojin.astralflux.init.ModAttachmentTypes;
+import xiaojin.astralflux.init.ModDateAttachmentTypes;
 
 import java.util.function.Supplier;
 
@@ -15,6 +15,6 @@ public abstract class DateAttachmentTypeRegisterUtil {
 
   private static <T> DeferredHolder<AttachmentType<?>, AttachmentType<T>> register
     (String name, Supplier<AttachmentType<T>> factory) {
-    return ModAttachmentTypes.REGISTRY.register(name, factory);
+    return ModDateAttachmentTypes.REGISTRY.register(name, factory);
   }
 }

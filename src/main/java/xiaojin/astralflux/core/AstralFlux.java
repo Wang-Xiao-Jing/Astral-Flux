@@ -24,7 +24,7 @@ public final class AstralFlux {
     container.registerConfig(ModConfig.Type.CLIENT, AstralFluxConfig.CLIENT_CONFIG_SPEC);
     container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
     ModDataComponentTypes.REGISTRY.register(bus);
-    ModAttachmentTypes.REGISTRY.register(bus);
+    ModDateAttachmentTypes.REGISTRY.register(bus);
     ModEntityTypes.REGISTRY.register(bus);
     ModAttributes.REGISTRY.register(bus);
     ModItems.REGISTRY.register(bus);

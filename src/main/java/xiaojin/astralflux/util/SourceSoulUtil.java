@@ -10,7 +10,7 @@ import xiaojin.astralflux.core.AstralFlux;
 import xiaojin.astralflux.core.AstralFluxEvents;
 import xiaojin.astralflux.events.sourcesoul.SourceSoulModifyEvent;
 import xiaojin.astralflux.init.ModAttributes;
-import xiaojin.astralflux.init.ModAttachmentTypes;
+import xiaojin.astralflux.init.ModDateAttachmentTypes;
 
 import javax.annotation.Nullable;
 
@@ -67,7 +67,7 @@ public final class SourceSoulUtil {
    */
   public static boolean isAttribute(LivingEntity entity) {
     return entity instanceof Player ||
-      entity.hasData(ModAttachmentTypes.SOURCE_SOUL) &&
+      entity.hasData(ModDateAttachmentTypes.SOURCE_SOUL) &&
         entity.getAttributes().hasAttribute(ModAttributes.MAX_SOURCE_SOUL);
   }
 
@@ -82,14 +82,14 @@ public final class SourceSoulUtil {
    * 判断是否带有暂停恢复tick
    */
   public static boolean isPauseRecoveryTick(final LivingEntity entity) {
-    return entity instanceof Player || entity.hasData(ModAttachmentTypes.SOURCE_SOUL_PAUSE_RECOVERY_TICK);
+    return entity instanceof Player || entity.hasData(ModDateAttachmentTypes.SOURCE_SOUL_PAUSE_RECOVERY_TICK);
   }
 
   /**
    * 获取源魂值
    */
   public static double getValue(LivingEntity entity) {
-    return isAttribute(entity) ? entity.getData(ModAttachmentTypes.SOURCE_SOUL) : 0;
+    return isAttribute(entity) ? entity.getData(ModDateAttachmentTypes.SOURCE_SOUL) : 0;
   }
 
   /**
@@ -99,7 +99,7 @@ public final class SourceSoulUtil {
     if (!isAttribute(entity)) {
       return;
     }
-    entity.setData(ModAttachmentTypes.SOURCE_SOUL, Math.clamp(targetValue, 0, getMaxValue(entity)));
+    entity.setData(ModDateAttachmentTypes.SOURCE_SOUL, Math.clamp(targetValue, 0, getMaxValue(entity)));
   }
 
   /**
@@ -117,7 +117,7 @@ public final class SourceSoulUtil {
    * 获取源魂暂停恢复tick
    */
   public static int getPauseRecoveryTick(LivingEntity entity) {
-    return isPauseRecoveryTick(entity) ? entity.getData(ModAttachmentTypes.SOURCE_SOUL_PAUSE_RECOVERY_TICK) : 0;
+    return isPauseRecoveryTick(entity) ? entity.getData(ModDateAttachmentTypes.SOURCE_SOUL_PAUSE_RECOVERY_TICK) : 0;
   }
 
   /**
@@ -127,7 +127,7 @@ public final class SourceSoulUtil {
     if (!isPauseRecoveryTick(entity)) {
       return;
     }
-    entity.setData(ModAttachmentTypes.SOURCE_SOUL_PAUSE_RECOVERY_TICK, targetValue);
+    entity.setData(ModDateAttachmentTypes.SOURCE_SOUL_PAUSE_RECOVERY_TICK, targetValue);
   }
 
   /**

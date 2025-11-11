@@ -10,7 +10,7 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import xiaojin.astralflux.events.sourcesoul.SourceSoulModifyEvent;
 import xiaojin.astralflux.init.ModAttributes;
-import xiaojin.astralflux.init.ModAttachmentTypes;
+import xiaojin.astralflux.init.ModDateAttachmentTypes;
 import xiaojin.astralflux.util.SourceSoulUtil;
 
 import java.util.List;
@@ -43,8 +43,8 @@ public final class SourceSoulEvents {
     if (!event.isWasDeath()) {
       return;
     }
-    player.setData(ModAttachmentTypes.SOURCE_SOUL.value(), 0d);
-    player.setData(ModAttachmentTypes.SOURCE_SOUL_PAUSE_RECOVERY_TICK.value(), 0);
+    player.setData(ModDateAttachmentTypes.SOURCE_SOUL.value(), 0d);
+    player.setData(ModDateAttachmentTypes.SOURCE_SOUL_PAUSE_RECOVERY_TICK.value(), 0);
   }
 
   /**

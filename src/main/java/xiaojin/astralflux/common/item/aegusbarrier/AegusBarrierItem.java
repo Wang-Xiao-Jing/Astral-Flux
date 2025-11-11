@@ -10,8 +10,9 @@ import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
 import xiaojin.astralflux.api.ItemLeftClickEmpty;
 import xiaojin.astralflux.api.sourcesoul.IModifySourceSouItem;
+import xiaojin.astralflux.common.entity.special.AegusBarrierShieldManagerEntity;
 import xiaojin.astralflux.init.ModDataComponentTypes;
-import xiaojin.astralflux.init.ModAttachmentTypes;
+import xiaojin.astralflux.init.ModDateAttachmentTypes;
 import xiaojin.astralflux.util.SourceSoulUtil;
 
 public class AegusBarrierItem extends Item implements IModifySourceSouItem, ItemLeftClickEmpty {
@@ -31,35 +32,29 @@ public class AegusBarrierItem extends Item implements IModifySourceSouItem, Item
     var modifyValue = getModifyValue(itemInHand, player);
     var canBeModified = SourceSoulUtil.getValue(player) >= modifyValue;
 
-    // 检测源魂值是否充足
-    if (level.isClientSide()) {
-      if (canBeModified) {
-        return InteractionResultHolder.success(itemInHand);
-      }
-      return InteractionResultHolder.fail(itemInHand);
-    }
     if (!canBeModified) {
       return InteractionResultHolder.fail(itemInHand);
     }
 
-    // TODO 需要重新适配实体版本
-//    // 添加护盾
-//    var is = player.getData(ModAttachmentTypes.IS_AEGUS_BARRIER_SHIELD)
-//    if (is == null) {
-//      is = player.getData(ModAttachmentTypes.IS_AEGUS_BARRIER_SHIELD);
-//    } else if (is.getExpandsCount() >= 7) {
-//      // 添加失败 因为已经达到最大数量
-//      return InteractionResultHolder.fail(itemInHand);
-//    }
-//    // 源魂值消耗
-//    if (!SourceSoulUtil.isModifyAllowed(player, modifyValue)) {
-//      return InteractionResultHolder.fail(itemInHand);
-//    }
-//
-//    SourceSoulUtil.modify(player, modifyValue);
-//    // 添加未完全成型的护盾
-//    is.addShield(player);
+    // 添加护盾
+    AegusBarrierShieldHandler handler = player.getExistingDataOrNull(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD);
+    AegusBarrierShieldManagerEntity manager;
+    if (handler == null) {
+      handler = AegusBarrierShieldHandler.create(player);
+      manager = handler.getManager();
+    } else if ((manager = handler.getManager()).getExpandsCount() >= 7) {
+      // 添加失败 因为已经达到最大数量
+      return InteractionResultHolder.fail(itemInHand);
+    }
+
+    if (!SourceSoulUtil.isModifyAllowed(player, modifyValue)) {
+      return InteractionResultHolder.fail(itemInHand);
+    }
+
+    // 添加未完全成型的护盾
+    manager.addShield();
     player.startUsingItem(usedHand);
+    SourceSoulUtil.modify(player, modifyValue);
     return InteractionResultHolder.consume(itemInHand);
   }
 
@@ -80,17 +75,11 @@ public class AegusBarrierItem extends Item implements IModifySourceSouItem, Item
     if (!(livingEntity instanceof Player player) || level.isClientSide() || remainingUseDuration > 0) {
       return;
     }
-    if (livingEntity.hasData(ModAttachmentTypes.IS_AEGUS_BARRIER_SHIELD)) {
-      livingEntity.getData(ModAttachmentTypes.IS_AEGUS_BARRIER_SHIELD);
-    }
     enterCD(stack, player);
   }
 
   @Override
   public int getUseDuration(final ItemStack stack, final LivingEntity entity) {
-    if (!(entity instanceof Player player)) {
-      return 0;
-    }
     return (int) (20 * 0.2);
   }
 
@@ -108,11 +97,10 @@ public class AegusBarrierItem extends Item implements IModifySourceSouItem, Item
 
   @Override
   public void leftClick(final ItemStack stack, final Player player) {
-    // TODO 需要重新适配实体版本
-//    var barrierShields = player.getExistingDataOrNull(ModAttachmentTypes.IS_AEGUS_BARRIER_SHIELD);
-//    if (barrierShields == null) {
-//      return;
-//    }
-//    barrierShields.remove(player);
+    var barrierShields = player.getExistingDataOrNull(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD);
+    if (barrierShields == null) {
+      return;
+    }
+    barrierShields.remove(player);
   }
 }

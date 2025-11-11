@@ -1,4 +1,4 @@
-package xiaojin.astralflux.client.renderer.entiey.special;
+package xiaojin.astralflux.common.entity.special;
 
 import com.google.common.base.MoreObjects;
 import net.minecraft.nbt.CompoundTag;
@@ -14,20 +14,19 @@ import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animation.AnimatableManager;
+import xiaojin.astralflux.init.ModEntityTypes;
 
 import java.util.Optional;
 import java.util.UUID;
 
-// TODO 添加entityType
-// 添加拦截能力
-public class AegusBarrierShieldEntiey extends Entity implements GeoEntity, TraceableEntity {
-  public static final EntityDataAccessor<Optional<UUID>> OWNER_UUID = SynchedEntityData.defineId(AegusBarrierShieldEntiey.class, EntityDataSerializers.OPTIONAL_UUID);
+// TODO 添加拦截能力
+public class AegusBarrierShieldEntity extends Entity implements GeoEntity, TraceableEntity {
+  public static final EntityDataAccessor<Optional<UUID>> OWNER_UUID_ACCESSOR =
+    SynchedEntityData.defineId(AegusBarrierShieldEntity.class, EntityDataSerializers.OPTIONAL_UUID);
+  public static final EntityDataAccessor<Boolean> IS_INTACT_ACCESSOR =
+    SynchedEntityData.defineId(AegusBarrierShieldEntity.class, EntityDataSerializers.BOOLEAN);
 
   private int tick;
-  /**
-   * 是否完整
-   */
-  private boolean isIntact; // TODO 需要同步到客户端
   /**
    * 是否移除
    */
@@ -37,14 +36,14 @@ public class AegusBarrierShieldEntiey extends Entity implements GeoEntity, Trace
   @Nullable
   private Entity cachedOwner;
 
-  private AegusBarrierShieldManagerEntiey manager;
+  private AegusBarrierShieldManagerEntity manager;
 
-  public AegusBarrierShieldEntiey(final EntityType<?> entityType, final Level level) {
+  public AegusBarrierShieldEntity(final EntityType<?> entityType, final Level level) {
     super(entityType, level);
   }
 
-  public AegusBarrierShieldEntiey(final Level level, AegusBarrierShieldManagerEntiey manager) {
-    super(entityType, level);
+  public AegusBarrierShieldEntity(final Level level, AegusBarrierShieldManagerEntity manager) {
+    super(ModEntityTypes.AEGUS_BARRIER_SHIELD_ENTITY.get(), level);
     this.manager = manager;
     setOwner(manager.getOwner());
   }
@@ -52,8 +51,8 @@ public class AegusBarrierShieldEntiey extends Entity implements GeoEntity, Trace
   @Override
   public void tick() {
     super.tick();
-    if (this.tickCount >= 20 * 0.2 && !isIntact) {
-      this.isIntact = true;
+    if (this.tickCount >= 20 * 0.2 && !isIntact()) {
+      this.setIntact(true);
     }
     this.tickCount++;
   }
@@ -67,7 +66,7 @@ public class AegusBarrierShieldEntiey extends Entity implements GeoEntity, Trace
   @Override
   public Entity getOwner() {
     if (this.level().isClientSide) {
-      this.ownerUUID = this.entityData.get(OWNER_UUID).orElse(null);
+      this.ownerUUID = this.entityData.get(OWNER_UUID_ACCESSOR).orElse(null);
     }
 
     if (this.cachedOwner != null && !this.cachedOwner.isRemoved()) {
@@ -93,9 +92,10 @@ public class AegusBarrierShieldEntiey extends Entity implements GeoEntity, Trace
   @Override
   public void restoreFrom(Entity entity) {
     super.restoreFrom(entity);
-    if (entity instanceof AegusBarrierShieldEntiey entiey) {
-      this.cachedOwner = entiey.cachedOwner;
+    if (!(entity instanceof AegusBarrierShieldEntity entity1)) {
+      return;
     }
+    this.cachedOwner = entity1.cachedOwner;
   }
 
   public void setOwner(@Nullable final Entity owner) {
@@ -105,23 +105,18 @@ public class AegusBarrierShieldEntiey extends Entity implements GeoEntity, Trace
 
   @Override
   protected void defineSynchedData(final SynchedEntityData.Builder builder) {
-
+    builder.define(OWNER_UUID_ACCESSOR, Optional.empty());
+    builder.define(IS_INTACT_ACCESSOR, false);
   }
 
   @Override
-  protected void readAdditionalSaveData(final CompoundTag compound) {
-
-  }
+  protected void readAdditionalSaveData(final CompoundTag compound) {}
 
   @Override
-  protected void addAdditionalSaveData(final CompoundTag compound) {
-
-  }
+  protected void addAdditionalSaveData(final CompoundTag compound) {}
 
   @Override
-  public void registerControllers(final AnimatableManager.ControllerRegistrar controllers) {
-
-  }
+  public void registerControllers(final AnimatableManager.ControllerRegistrar controllers) {}
 
   @Override
   public AnimatableInstanceCache getAnimatableInstanceCache() {
@@ -133,19 +128,24 @@ public class AegusBarrierShieldEntiey extends Entity implements GeoEntity, Trace
     return false;
   }
 
+  // TODO isIntact不为false时 被攻击到移除
   public boolean isRemove() {
     return isRemove;
   }
 
   public boolean isIntact() {
-    return isIntact;
+    return this.entityData.get(IS_INTACT_ACCESSOR);
   }
 
-  public AegusBarrierShieldManagerEntiey getManager() {
+  public AegusBarrierShieldManagerEntity getManager() {
     return manager;
   }
 
-  public void setManager(final AegusBarrierShieldManagerEntiey manager) {
+  public void setManager(final AegusBarrierShieldManagerEntity manager) {
     this.manager = manager;
+  }
+
+  public void setIntact(boolean intact) {
+    this.entityData.set(IS_INTACT_ACCESSOR, intact);
   }
 }

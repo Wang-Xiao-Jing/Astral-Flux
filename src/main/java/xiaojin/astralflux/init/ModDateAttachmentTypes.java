@@ -2,14 +2,16 @@ package xiaojin.astralflux.init;
 
 import com.mojang.serialization.Codec;
 import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
+import xiaojin.astralflux.common.item.aegusbarrier.AegusBarrierShieldHandler;
 import xiaojin.astralflux.core.AstralFlux;
 import xiaojin.astralflux.init.util.DateAttachmentTypeRegisterUtil;
 
-public final class ModAttachmentTypes extends DateAttachmentTypeRegisterUtil {
+public final class ModDateAttachmentTypes extends DateAttachmentTypeRegisterUtil {
   public static final DeferredRegister<AttachmentType<?>> REGISTRY = AstralFlux.modRegister(NeoForgeRegistries.ATTACHMENT_TYPES);
 
   public static final DeferredHolder<AttachmentType<?>, AttachmentType<Double>> SOURCE_SOUL = register(
@@ -24,8 +26,8 @@ public final class ModAttachmentTypes extends DateAttachmentTypeRegisterUtil {
       .serialize(Codec.INT)
       .sync(ByteBufCodecs.INT)
       .copyOnDeath());
-  public static final DeferredHolder<AttachmentType<?>, AttachmentType<Boolean>> IS_AEGUS_BARRIER_SHIELD = register(
+  public static final DeferredHolder<AttachmentType<?>, AttachmentType<AegusBarrierShieldHandler>> AEGUS_BARRIER_SHIELD = register(
     "aegus_barrier_shield", AttachmentType
-      .builder(() -> false)
-      .sync(ByteBufCodecs.BOOL));
+      .builder(AegusBarrierShieldHandler::create)
+      .sync(new AegusBarrierShieldHandler.Sync()));
 }

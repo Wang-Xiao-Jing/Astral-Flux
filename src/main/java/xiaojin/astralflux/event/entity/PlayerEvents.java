@@ -43,7 +43,6 @@ public final class PlayerEvents {
    */
   @SubscribeEvent
   public static void playerTickEventPre(PlayerTickEvent.Pre event) {
-    AegusBarrierEvents.onTick(event);
     SourceSoulEvents.onTick(event);
   }
 
@@ -59,17 +58,6 @@ public final class PlayerEvents {
   }
 
   /**
-   * 受击之前
-   */
-  @SubscribeEvent
-  public static void livingIncomingDamageEvent(LivingIncomingDamageEvent event) {
-    if (!(event.getEntity() instanceof Player player)) {
-      return;
-    }
-    AegusBarrierEvents.onHurt(event);
-  }
-
-  /**
    * 修改源魂事件
    */
   @SubscribeEvent
@@ -81,7 +69,7 @@ public final class PlayerEvents {
    */
   @SubscribeEvent(priority = EventPriority.LOWEST)
   public static <T extends LivingEntity> void sourceSoulModifyEvent$Post$Lowest(SourceSoulModifyEvent.Post<T> event) {
-//    SourceSoulEvents.onConsume(event);
+// TODO   SourceSoulEvents.onConsume(event);
     SourceSoulBarLayerDraw.INSTANCE.addModify(event.getModifyValue());
   }
 

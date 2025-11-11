@@ -1,4 +1,4 @@
-package xiaojin.astralflux.client.renderer.item;
+package xiaojin.astralflux.client.renderer.entiey.special;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -8,115 +8,82 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.client.color.item.ItemColors;
+import net.minecraft.client.model.geom.builders.LayerDefinition;
+import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
-import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.phys.Vec3;
-import xiaojin.astralflux.client.renderer.ModRender;
+import software.bernie.geckolib.model.GeoModel;
+import software.bernie.geckolib.renderer.GeoEntityRenderer;
+import xiaojin.astralflux.common.entity.special.AegusBarrierShieldEntity;
 import xiaojin.astralflux.core.AstralFlux;
-import xiaojin.astralflux.init.ModAttachmentTypes;
-import xiaojin.astralflux.util.ModUtil;
+import xiaojin.astralflux.init.ModDateAttachmentTypes;
 
 import java.util.List;
 
-// TODO 替换为在实体渲染
 /**
  * 埃癸斯壁垒盾牌渲染
  */
-public class AegusBarrierShieldShieldRenderer implements ModRender {
+public class AegusBarrierShieldEntityRenderer extends EntityRenderer<AegusBarrierShieldEntity> {
   private static final ItemStack EMPTY_ITEM_STACK = ItemStack.EMPTY;
   public static final ResourceLocation MODDED_RL = AstralFlux.modRL("entity/aegus_barrier_shield");
   public static final ModelResourceLocation MODEL_RESOURCE_LOCATION =
     ModelResourceLocation.standalone(MODDED_RL);
   private static final ItemColors ITEM_COLORS_COLOR = ItemColors.createDefault(BlockColors.createDefault());
-  private BakedModel bakedModel;
+  public static final RenderType TYPE = RenderType.eyes(TextureAtlas.LOCATION_BLOCKS);
+  private static BakedModel bakedModel;
 
-  public static final AegusBarrierShieldShieldRenderer INSTANCE = new AegusBarrierShieldShieldRenderer();
+  public AegusBarrierShieldEntityRenderer(final EntityRendererProvider.Context context) {
+    super(context);
+  }
 
-  public void init() {
-    this.bakedModel = Minecraft.getInstance().getModelManager().getModel(MODEL_RESOURCE_LOCATION);
+  public static LayerDefinition createBodyLayer() {
+    bakedModel = Minecraft.getInstance().getModelManager().getModel(MODEL_RESOURCE_LOCATION);
+    var meshDefinition = new MeshDefinition();
+    return LayerDefinition.create(meshDefinition, 24, 24);
   }
 
   @Override
-  public void levelRender(final Minecraft minecraft,
-                          final ClientLevel level,
-                          final Frustum frustum,
-                          final PoseStack poseStack,
-                          final Camera camera,
-                          final DeltaTracker partialTick) {
-    var player = minecraft.player;
-    if (player == null) {
-      return;
-    }
-
-    var is = player.getData(ModAttachmentTypes.IS_AEGUS_BARRIER_SHIELD);
-    if (!is) {
-      return;
-    }
-    var partialTicks = partialTick.getGameTimeDeltaPartialTick(true);
-
-    var renderBuffers = minecraft.renderBuffers();
-    var bufferSource = renderBuffers.bufferSource();
-    var cameraPos = camera.getPosition();
-    var combinedLight = LightTexture.FULL_BRIGHT;
+  public void render(final AegusBarrierShieldEntity p_entity,
+                     final float entityYaw,
+                     final float partialTick,
+                     final PoseStack poseStack,
+                     final MultiBufferSource bufferSource, final int packedLight) {
+    super.render(p_entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
     var combinedOverlay = OverlayTexture.NO_OVERLAY;
-
-    poseStack.pushPose();
-    poseStack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
-//    // 将偏航角和俯仰角转换为方向向量
-//    var yaw = is.getViewYRot(partialTicks) * Mth.DEG_TO_RAD;
-//    var pitch = is.getViewXRot(partialTicks) * Mth.DEG_TO_RAD;
-//
-//    // 计算方向向量
-//    var dirX = -Math.sin(yaw) * Math.cos(pitch);
-//    var dirY = -Math.sin(pitch);
-//    var dirZ = Math.cos(yaw) * Math.cos(pitch);
-//    var direction = new Vec3(dirX, dirY, dirZ).normalize();
-//
-//    var eyePosition = player.getEyePosition(partialTicks);
-//    var pos = eyePosition.add(direction.scale(1.5f));
-//    poseStack.translate(pos.x, pos.y, pos.z);
-//
-//    poseStack.mulPose(Axis.YP.rotation(-yaw));
-//    poseStack.mulPose(Axis.XP.rotation(pitch));
-//
-//    var indexVetexs = ModUtil.getIndexVetexs(1.5f);
-//    for (var number : is.getShieldNumbers()) {
-//      poseStack.pushPose();
-//      var indexVetex = indexVetexs[number];
-//      poseStack.translate(indexVetex.x(), indexVetex.y(), indexVetex.z());
-////      poseStack.mulPose(indexVetex.getValue().get(new Quaternionf()));
-//      renderModel(poseStack, bufferSource, combinedLight, combinedOverlay);
-//      poseStack.popPose();
-//    }
-
-    poseStack.popPose();
+    poseStack.mulPose(Axis.YP.rotation(-p_entity.getViewYRot(partialTick)));
+    poseStack.mulPose(Axis.XP.rotation(p_entity.getViewXRot(partialTick)));
+    renderModel(poseStack, bufferSource, packedLight, combinedOverlay);
   }
 
-  private void renderModel(final PoseStack poseStack, final MultiBufferSource.BufferSource bufferSource, final int combinedLight, final int combinedOverlay) {
+  private void renderModel(final PoseStack poseStack, final MultiBufferSource bufferSource, final int combinedLight, final int combinedOverlay) {
     boolean flag1 = true;
     poseStack.pushPose();
     poseStack.translate(-0.7f, -0.7f, -0.5f);
     poseStack.scale(1.5f, 1.5f, 1);
-    for (var model : this.bakedModel.getRenderPasses(EMPTY_ITEM_STACK, flag1)) {
-      for (var rendertype : model.getRenderTypes(EMPTY_ITEM_STACK, flag1)) {
-        var vertexconsumer = ItemRenderer.getFoilBufferDirect(bufferSource,
+    for (BakedModel model : bakedModel.getRenderPasses(EMPTY_ITEM_STACK, flag1)) {
+      for (RenderType rendertype : model.getRenderTypes(EMPTY_ITEM_STACK, flag1)) {
+        VertexConsumer vertexconsumer = ItemRenderer.getFoilBufferDirect(bufferSource,
           rendertype,
           false,
           EMPTY_ITEM_STACK.hasFoil());
-        var randomsource = RandomSource.create();
+        RandomSource randomsource = RandomSource.create();
         long i = 42L;
 
         for (Direction direction : Direction.values()) {
@@ -157,5 +124,10 @@ public class AegusBarrierShieldShieldRenderer implements ModRender {
       float f3 = (float) FastColor.ARGB32.blue(i) / 255.0F;
       buffer.putBulkData(posestack$pose, bakedquad, f1, f2, f3, f, combinedLight, combinedOverlay, true);
     }
+  }
+
+  @Override
+  public ResourceLocation getTextureLocation(final AegusBarrierShieldEntity entity) {
+    return MODDED_RL;
   }
 }

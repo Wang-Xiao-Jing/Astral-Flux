@@ -1,4 +1,4 @@
-package xiaojin.astralflux.core;
+package xiaojin.astralflux.client;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -8,7 +8,9 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
-import xiaojin.astralflux.client.renderer.item.AegusBarrierShieldShieldRenderer;
+import xiaojin.astralflux.client.renderer.entiey.special.AegusBarrierShieldEntityRenderer;
+import xiaojin.astralflux.core.AstralFlux;
+import xiaojin.astralflux.core.AstralFluxKey;
 
 import static xiaojin.astralflux.core.AstralFlux.ID;
 
@@ -20,14 +22,13 @@ public final class AstralFluxClient {
     AstralFlux.LOGGER.info("HELLO FROM CLIENT SETUP");
   }
 
-  @SubscribeEvent
-  public static void registerGeometryLoaders(ModelEvent.BakingCompleted event) {
-    AegusBarrierShieldShieldRenderer.INSTANCE.init();
-  }
+//  @SubscribeEvent
+//  public static void registerGeometryLoaders(ModelEvent.BakingCompleted event) {
+//  }
 
   @SubscribeEvent
   public static void RegisterAdditional(ModelEvent.RegisterAdditional event) {
-    event.register(AegusBarrierShieldShieldRenderer.MODEL_RESOURCE_LOCATION);
+    event.register(AegusBarrierShieldEntityRenderer.MODEL_RESOURCE_LOCATION);
   }
 
   @SubscribeEvent

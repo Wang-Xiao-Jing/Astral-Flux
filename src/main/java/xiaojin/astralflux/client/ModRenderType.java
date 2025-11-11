@@ -4,8 +4,6 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import net.minecraft.Util;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.function.Function;
 
@@ -16,13 +14,13 @@ import static net.minecraft.client.renderer.RenderType.create;
 
 
 public final class ModRenderType {
-  public static final Function<ResourceLocation, RenderType> ICON =
-    Util.memoize(texture -> create("icon",
-      DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, QUADS,
+  public static final Function<ResourceLocation, RenderType> AEGUS_BARRIER_SHIELD =
+    Util.memoize(texture -> create("aegus_barrier_shield",
+      DefaultVertexFormat.POSITION_COLOR, QUADS,
       1536, builder()
-        .setShaderState(/*RENDERTYPE_TEXT_SHADER,*/RENDERTYPE_ENTITY_TRANSLUCENT_CULL_SHADER)
+        .setShaderState(/*RENDERTYPE_TEXT_SHADER,*/RENDERTYPE_ITEM_ENTITY_TRANSLUCENT_CULL_SHADER)
         .setTextureState(new TextureStateShard(texture, false, false))
         .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-        .setLightmapState(LIGHTMAP)
-        .createCompositeState(false)));
+        .setLightmapState(NO_LIGHTMAP)
+        .createCompositeState(true)));
 }
