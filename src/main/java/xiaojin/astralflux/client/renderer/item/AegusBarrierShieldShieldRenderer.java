@@ -24,18 +24,14 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Quaterniond;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
-import org.joml.Vector3fc;
 import xiaojin.astralflux.client.renderer.ModRender;
 import xiaojin.astralflux.core.AstralFlux;
 import xiaojin.astralflux.init.ModAttachmentTypes;
 import xiaojin.astralflux.util.ModUtil;
 
 import java.util.List;
-import java.util.Map;
 
+// TODO 替换为在实体渲染
 /**
  * 埃癸斯壁垒盾牌渲染
  */
@@ -65,8 +61,8 @@ public class AegusBarrierShieldShieldRenderer implements ModRender {
       return;
     }
 
-    var barrierShields = player.getExistingDataOrNull(ModAttachmentTypes.AEGUS_BARRIER_SHIELD);
-    if (barrierShields == null) {
+    var is = player.getData(ModAttachmentTypes.IS_AEGUS_BARRIER_SHIELD);
+    if (!is) {
       return;
     }
     var partialTicks = partialTick.getGameTimeDeltaPartialTick(true);
@@ -79,32 +75,32 @@ public class AegusBarrierShieldShieldRenderer implements ModRender {
 
     poseStack.pushPose();
     poseStack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
-    // 将偏航角和俯仰角转换为方向向量
-    var yaw = barrierShields.getViewYRot(partialTicks) * Mth.DEG_TO_RAD;
-    var pitch = barrierShields.getViewXRot(partialTicks) * Mth.DEG_TO_RAD;
-
-    // 计算方向向量
-    var dirX = -Math.sin(yaw) * Math.cos(pitch);
-    var dirY = -Math.sin(pitch);
-    var dirZ = Math.cos(yaw) * Math.cos(pitch);
-    var direction = new Vec3(dirX, dirY, dirZ).normalize();
-
-    var eyePosition = player.getEyePosition(partialTicks);
-    var pos = eyePosition.add(direction.scale(1.5f));
-    poseStack.translate(pos.x, pos.y, pos.z);
-
-    poseStack.mulPose(Axis.YP.rotation(-yaw));
-    poseStack.mulPose(Axis.XP.rotation(pitch));
-
-    var indexVetexs = ModUtil.getIndexVetexs(1.5f);
-    for (var number : barrierShields.getShieldNumbers()) {
-      poseStack.pushPose();
-      var indexVetex = indexVetexs[number];
-      poseStack.translate(indexVetex.x(), indexVetex.y(), indexVetex.z());
-//      poseStack.mulPose(indexVetex.getValue().get(new Quaternionf()));
-      renderModel(poseStack, bufferSource, combinedLight, combinedOverlay);
-      poseStack.popPose();
-    }
+//    // 将偏航角和俯仰角转换为方向向量
+//    var yaw = is.getViewYRot(partialTicks) * Mth.DEG_TO_RAD;
+//    var pitch = is.getViewXRot(partialTicks) * Mth.DEG_TO_RAD;
+//
+//    // 计算方向向量
+//    var dirX = -Math.sin(yaw) * Math.cos(pitch);
+//    var dirY = -Math.sin(pitch);
+//    var dirZ = Math.cos(yaw) * Math.cos(pitch);
+//    var direction = new Vec3(dirX, dirY, dirZ).normalize();
+//
+//    var eyePosition = player.getEyePosition(partialTicks);
+//    var pos = eyePosition.add(direction.scale(1.5f));
+//    poseStack.translate(pos.x, pos.y, pos.z);
+//
+//    poseStack.mulPose(Axis.YP.rotation(-yaw));
+//    poseStack.mulPose(Axis.XP.rotation(pitch));
+//
+//    var indexVetexs = ModUtil.getIndexVetexs(1.5f);
+//    for (var number : is.getShieldNumbers()) {
+//      poseStack.pushPose();
+//      var indexVetex = indexVetexs[number];
+//      poseStack.translate(indexVetex.x(), indexVetex.y(), indexVetex.z());
+////      poseStack.mulPose(indexVetex.getValue().get(new Quaternionf()));
+//      renderModel(poseStack, bufferSource, combinedLight, combinedOverlay);
+//      poseStack.popPose();
+//    }
 
     poseStack.popPose();
   }

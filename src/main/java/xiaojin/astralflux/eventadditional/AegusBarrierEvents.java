@@ -6,16 +6,16 @@ import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
-import xiaojin.astralflux.common.item.aegusbarrier.AegusBarrierShields;
 import xiaojin.astralflux.init.ModAttachmentTypes;
 
 public final class AegusBarrierEvents {
   public static void onTick(final PlayerTickEvent.Pre event) {
     final var entity = event.getEntity();
-    var barrierShields = entity.getExistingDataOrNull(ModAttachmentTypes.AEGUS_BARRIER_SHIELD);
+    var barrierShields = entity.getExistingDataOrNull(ModAttachmentTypes.IS_AEGUS_BARRIER_SHIELD);
     if (barrierShields == null) {
       return;
     }
+
     barrierShields.setTargetRot(entity.getXRot(), entity.getYRot());
     barrierShields.tick(entity);
   }
@@ -26,7 +26,7 @@ public final class AegusBarrierEvents {
       return;
     }
 
-    var barrierShields = player.getExistingDataOrNull(ModAttachmentTypes.AEGUS_BARRIER_SHIELD);
+    var barrierShields = player.getExistingDataOrNull(ModAttachmentTypes.IS_AEGUS_BARRIER_SHIELD);
     if (barrierShields == null) {
       return;
     }
@@ -45,7 +45,7 @@ public final class AegusBarrierEvents {
    */
   private static int getIndexOfSide(final Projectile projectile,
                                     final Player player,
-                                    final AegusBarrierShields barrierShields) {
+                                    final AegusBarrierShieldsManager barrierShields) {
     // TODO 改下这个以适配AegusBarrierShields的角度
     final Vec3 diProj = projectile.getLookAngle();
     final Vec3 diPlayer = player.getLookAngle();

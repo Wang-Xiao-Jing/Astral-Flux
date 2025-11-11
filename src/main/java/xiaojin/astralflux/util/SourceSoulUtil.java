@@ -41,15 +41,25 @@ public final class SourceSoulUtil {
     if (!isAttribute(entity)) {
       return false;
     }
+
     var oldSourceSoulValue = getValue(entity);
-    var pre = AstralFluxEvents.sourceSoulModifyPre(entity, getValue(entity), consumeValue);
+    var pre = AstralFluxEvents.sourceSoulModifyPre(entity, oldSourceSoulValue, consumeValue);
     var newConsumeValue = pre.getModifyValue();
     if (pre.isCanceled() || oldSourceSoulValue + newConsumeValue < 0) {
       return false;
     }
-    setValue(entity, Math.clamp(getValue(entity) + newConsumeValue, 0, getMaxValue(entity)));
+
+    // 如果为0就没必要修改，但仍然返回true
+    if (consumeValue != 0) {
+      setValue(entity, getValue(entity) + newConsumeValue);
+    }
+
     AstralFluxEvents.sourceSoulModifyPost(entity, oldSourceSoulValue, newConsumeValue);
     return true;
+  }
+
+  public static boolean isModifyAllowed(LivingEntity entity, double consumeValue) {
+    return isAttribute(entity) && getValue(entity) + consumeValue >= 0;
   }
 
   /**
@@ -89,17 +99,18 @@ public final class SourceSoulUtil {
     if (!isAttribute(entity)) {
       return;
     }
-    entity.setData(ModAttachmentTypes.SOURCE_SOUL, targetValue);
+    entity.setData(ModAttachmentTypes.SOURCE_SOUL, Math.clamp(targetValue, 0, getMaxValue(entity)));
   }
 
   /**
    * 在原来的基础上修改（增加）源魂值
    */
-  public static void modifyValue(LivingEntity entity, double value) {
-    if (!isAttribute(entity) || value == 0) {
+  public static void modifyValue(LivingEntity entity, double consumeValue) {
+    var value = getValue(entity);
+    if (!isAttribute(entity) || value + consumeValue <= 0) {
       return;
     }
-    setValue(entity, getValue(entity) + value);
+    setValue(entity, value + consumeValue);
   }
 
   /**
