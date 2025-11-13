@@ -1,6 +1,7 @@
 package xiaojin.astralflux.core;
 
 import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -25,6 +26,7 @@ public final class AstralFlux {
     container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
     ModDataComponentTypes.REGISTRY.register(bus);
     ModDateAttachmentTypes.REGISTRY.register(bus);
+    ModEntityDataSerializers.REGISTRY.register(bus);
     ModEntityTypes.REGISTRY.register(bus);
     ModAttributes.REGISTRY.register(bus);
     ModItems.REGISTRY.register(bus);
@@ -40,6 +42,9 @@ public final class AstralFlux {
   }
 
   public static <T> @NotNull DeferredRegister<T> modRegister(Registry<T> registry) {
+    return DeferredRegister.create(registry, AstralFlux.ID);
+  }
+  public static <T> @NotNull DeferredRegister<T> modRegister(ResourceKey<? extends Registry<T>> registry) {
     return DeferredRegister.create(registry, AstralFlux.ID);
   }
 }

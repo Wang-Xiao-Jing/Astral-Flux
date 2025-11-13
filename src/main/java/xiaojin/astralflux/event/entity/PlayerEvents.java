@@ -69,7 +69,8 @@ public final class PlayerEvents {
    */
   @SubscribeEvent(priority = EventPriority.LOWEST)
   public static <T extends LivingEntity> void sourceSoulModifyEvent$Post$Lowest(SourceSoulModifyEvent.Post<T> event) {
-// TODO   SourceSoulEvents.onConsume(event);
+// TODO 测试完成记得解除注释
+// SourceSoulEvents.onConsume(event);
     SourceSoulBarLayerDraw.INSTANCE.addModify(event.getModifyValue());
   }
 

@@ -72,7 +72,7 @@ public class AegusBarrierItem extends Item implements IModifySourceSouItem, Item
 
   @Override
   public void releaseUsing(final ItemStack stack, final Level level, final LivingEntity livingEntity, final int remainingUseDuration) {
-    if (!(livingEntity instanceof Player player) || level.isClientSide() || remainingUseDuration > 0) {
+    if (!(livingEntity instanceof Player player) || level.isClientSide()) {
       return;
     }
     enterCD(stack, player);
@@ -92,7 +92,7 @@ public class AegusBarrierItem extends Item implements IModifySourceSouItem, Item
    * 进入冷却
    */
   public void enterCD(final ItemStack stack, final Player player) {
-    player.getCooldowns().addCooldown(this, 20 * 10);
+    player.getCooldowns().addCooldown(this, 20 * 10);// TODO 如果要禁用请注释该行
   }
 
   @Override

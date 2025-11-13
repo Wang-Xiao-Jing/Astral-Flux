@@ -1,8 +1,14 @@
 package xiaojin.astralflux.common.entity.special;
 
 import com.google.common.base.MoreObjects;
+import io.netty.buffer.ByteBuf;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
@@ -15,6 +21,7 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaterniond;
 import xiaojin.astralflux.init.ModDateAttachmentTypes;
+import xiaojin.astralflux.init.ModEntityDataSerializers;
 import xiaojin.astralflux.init.ModEntityTypes;
 import xiaojin.astralflux.util.ModUtil;
 import xiaojin.astralflux.util.SourceSoulUtil;
@@ -32,6 +39,8 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     SynchedEntityData.defineId(AegusBarrierShieldManagerEntity.class, EntityDataSerializers.BOOLEAN);
   public static final EntityDataAccessor<Integer> EXPANDS_COUNT_ACCESSOR =
     SynchedEntityData.defineId(AegusBarrierShieldManagerEntity.class, EntityDataSerializers.INT);
+  public static final EntityDataAccessor<Map<Integer, Map.Entry<Integer, UUID>>> SHIELD_LIST_ACCESSOR =
+    SynchedEntityData.defineId(AegusBarrierShieldManagerEntity.class, ModEntityDataSerializers.AEGUS_BARRIER_SHIELD_MANAGER_SHIELDS.get());
 
   public static final int CONSUME_VALUE = -15;
 
@@ -40,7 +49,7 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
    */
   private static final Quaterniond[] INDEX_VETEXS = ModUtil.getIndexVetexs(1.5f);
 
-  private final Map<Integer, AegusBarrierShieldEntity> shieldList = HashMap.newHashMap(7); // TODO 需要同步到客户端
+  private final Map<Integer, AegusBarrierShieldEntity> shieldList = new Int2ObjectOpenHashMap<>(7);
 
   @Nullable
   private UUID ownerUUID;
@@ -66,14 +75,14 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     this.cachedOwner = owner;
     this.ownerUUID = owner != null ? owner.getUUID() : null;
     if (this.ownerUUID != null) {
-      this.entityData.set(OWNER_UUID_ACCESSOR, Optional.of(this.ownerUUID));
-      this.entityData.set(OWNER_ID_ACCESSOR, OptionalInt.of(owner.getId()));
+      getEntityData().set(OWNER_UUID_ACCESSOR, Optional.of(this.ownerUUID));
+      getEntityData().set(OWNER_ID_ACCESSOR, OptionalInt.of(owner.getId()));
     }
   }
 
   @Nullable
   public AegusBarrierShieldEntity getShield(int index) {
-    return shieldList.get(index);
+    return this.shieldList.get(index);
   }
 
   @Override
@@ -97,7 +106,7 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     var iterator = this.shieldList.entrySet().iterator();
     while (iterator.hasNext()) {
       var entry = iterator.next();
-      var entiey = entry.getValue();
+      var shieldEntity = entry.getValue();
       var index = entry.getKey();
       var vetex = INDEX_VETEXS[index];
       var vec3 = new Vec3(vetex.x(), vetex.y(), vetex.z());
@@ -109,12 +118,12 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
         .add(Vec3.directionFromRotation(yRot, xRot).scale(2))
         .add(vec3.yRot(yRot).xRot(xRot));
 
-      entiey.setPos(pos);
+      shieldEntity.setPos(pos);
       // 调整该处以适配旋转
-      entiey.turn(yRot, xRot);
+      shieldEntity.turn(yRot, xRot);
 
-      if (!isClientSide && entiey.isRemove()) {
-        entiey.remove(RemovalReason.DISCARDED);
+      if (!isClientSide && shieldEntity.isRemove()) {
+        removeShieldEntity(index, shieldEntity);
         iterator.remove();
       }
     }
@@ -126,6 +135,21 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     if (this.isConsume()) {
       this.setConsumeTics(this.getConsumeTics() + 1);
     }
+  }
+
+  private void removeShieldEntity(int index, final AegusBarrierShieldEntity shieldEntity) {
+    var data = getEntityData();
+    data.get(SHIELD_LIST_ACCESSOR).remove(index);
+    data.set(SHIELD_LIST_ACCESSOR, data.get(SHIELD_LIST_ACCESSOR),true);
+    onSyncedDataUpdated(SHIELD_LIST_ACCESSOR);
+    shieldEntity.remove(RemovalReason.DISCARDED);
+  }
+
+  private void addShieldEntity(int index, final AegusBarrierShieldEntity shieldEntity) {
+    var data = getEntityData();
+    data.get(SHIELD_LIST_ACCESSOR).put(index, Map.entry(shieldEntity.getId(), shieldEntity.getUUID()));
+    data.set(SHIELD_LIST_ACCESSOR, data.get(SHIELD_LIST_ACCESSOR),true);
+    this.shieldList.put(index, shieldEntity);
   }
 
   private boolean increaseOrRemoval(final boolean isClientSide, final Entity entity) {
@@ -171,7 +195,7 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
 
     var newEntiey = new AegusBarrierShieldEntity(level(), this);
     level().addFreshEntity(newEntiey);
-    this.shieldList.put(count, newEntiey);
+    addShieldEntity(count, newEntiey);
     this.setExpandsCount(count + 1);
     return true;
   }
@@ -196,6 +220,25 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     builder.define(CONSUME_TICS_ACCESSOR, 0);
     builder.define(IS_CONSUME_ACCESSOR, false);
     builder.define(EXPANDS_COUNT_ACCESSOR, 0);
+    builder.define(SHIELD_LIST_ACCESSOR, new Int2ObjectOpenHashMap<>(7));
+  }
+
+  @Override
+  public void onSyncedDataUpdated(final List<SynchedEntityData.DataValue<?>> dataValues) {
+    super.onSyncedDataUpdated(dataValues);
+    var dataValue = dataValues.stream()
+      .filter(d -> d.id() == 13).findFirst();
+    if (dataValue.isEmpty()){
+      return;
+    }
+    var uuidIntegerMap = (Map<Integer, Map.Entry<Integer, UUID>>) dataValue.orElseThrow().value();
+    for (var entry : uuidIntegerMap.entrySet()) {
+      var number = entry.getKey();
+      var integerUUIDEntry = entry.getValue();
+      var shieldEntity = this.level().getEntity(integerUUIDEntry.getKey());
+      assert shieldEntity instanceof AegusBarrierShieldEntity || !shieldEntity.getUUID().equals(integerUUIDEntry.getValue()) : "Shield entity not found";
+      this.shieldList.put(number, (AegusBarrierShieldEntity) shieldEntity);
+    }
   }
 
   public void setTargetYRot(float targetYRot) {
@@ -216,9 +259,9 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
   public Entity getOwner() {
     var level = this.level();
     if (level.isClientSide) {
-      this.ownerUUID = this.entityData.get(OWNER_UUID_ACCESSOR).orElse(null);
-      var ownerId = this.entityData.get(OWNER_ID_ACCESSOR);
-      if (ownerId.isPresent()){
+      this.ownerUUID = getEntityData().get(OWNER_UUID_ACCESSOR).orElse(null);
+      var ownerId = getEntityData().get(OWNER_ID_ACCESSOR);
+      if (ownerId.isPresent()) {
         this.cachedOwner = level.getEntity(ownerId.getAsInt());
       }
     }
@@ -244,10 +287,12 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
   }
 
   @Override
-  protected void addAdditionalSaveData(CompoundTag compound) {}
+  protected void addAdditionalSaveData(CompoundTag compound) {
+  }
 
   @Override
-  protected void readAdditionalSaveData(CompoundTag compound) {}
+  protected void readAdditionalSaveData(CompoundTag compound) {
+  }
 
   @Override
   public boolean shouldBeSaved() {
@@ -255,26 +300,26 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
   }
 
   public int getConsumeTics() {
-    return this.entityData.get(CONSUME_TICS_ACCESSOR);
+    return getEntityData().get(CONSUME_TICS_ACCESSOR);
   }
 
   public void setConsumeTics(int consumeTics) {
-    this.entityData.set(CONSUME_TICS_ACCESSOR, consumeTics);
+    getEntityData().set(CONSUME_TICS_ACCESSOR, consumeTics);
   }
 
   public boolean isConsume() {
-    return this.entityData.get(IS_CONSUME_ACCESSOR);
+    return getEntityData().get(IS_CONSUME_ACCESSOR);
   }
 
   public void setConsume(boolean consume) {
-    this.entityData.set(IS_CONSUME_ACCESSOR, consume);
+    getEntityData().set(IS_CONSUME_ACCESSOR, consume);
   }
 
   public int getExpandsCount() {
-    return this.entityData.get(EXPANDS_COUNT_ACCESSOR);
+    return getEntityData().get(EXPANDS_COUNT_ACCESSOR);
   }
 
   public void setExpandsCount(int expandsCount) {
-    this.entityData.set(EXPANDS_COUNT_ACCESSOR, expandsCount);
+    getEntityData().set(EXPANDS_COUNT_ACCESSOR, expandsCount);
   }
 }
