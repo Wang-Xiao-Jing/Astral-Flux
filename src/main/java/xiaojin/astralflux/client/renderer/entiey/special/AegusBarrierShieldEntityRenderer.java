@@ -2,6 +2,7 @@ package xiaojin.astralflux.client.renderer.entiey.special;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.client.color.item.ItemColors;
@@ -22,8 +23,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
+import org.lwjgl.opengl.GL11;
 import xiaojin.astralflux.common.entity.special.AegusBarrierShieldEntity;
 import xiaojin.astralflux.core.AstralFlux;
+import xiaojin.astralflux.util.ModUtil;
 
 import java.util.List;
 
@@ -50,22 +54,30 @@ public class AegusBarrierShieldEntityRenderer extends EntityRenderer<AegusBarrie
   }
 
   @Override
-  public void render(final AegusBarrierShieldEntity p_entity,
+  public void render(final AegusBarrierShieldEntity pEntity,
                      final float entityYaw,
                      final float partialTick,
                      final PoseStack poseStack,
                      final MultiBufferSource bufferSource, final int packedLight) {
-    super.render(p_entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
-    var combinedOverlay = OverlayTexture.NO_OVERLAY;
+    super.render(pEntity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
+
 
     poseStack.pushPose();
-//    poseStack.mulPose(Axis.YP.rotation(-p_entity.getViewYRot(partialTick)));
-//    poseStack.mulPose(Axis.XP.rotation(p_entity.getViewXRot(partialTick)));
 
+    final Vec3 lookingVec = pEntity.getLookAngle();
+    final double angleX = Math.atan2(lookingVec.x, lookingVec.z);
+    final double angleY = Math.atan(-lookingVec.y);
+
+    poseStack.mulPose(Axis.YP.rotation((float) angleX));
+    poseStack.mulPose(Axis.XP.rotation((float) angleY));
+
+    // poseStack.mulPose(Axis.YP.rotation(-pEntity.getViewYRot(partialTick)));
+    // poseStack.mulPose(Axis.XP.rotation(pEntity.getViewXRot(partialTick)));
 
     poseStack.translate(-0.7f, -0.7f, -0.5f);
     poseStack.scale(1.5f, 1.5f, 1);
 
+    var combinedOverlay = OverlayTexture.NO_OVERLAY;
     renderModel(poseStack, bufferSource, packedLight, combinedOverlay);
 
     poseStack.popPose();

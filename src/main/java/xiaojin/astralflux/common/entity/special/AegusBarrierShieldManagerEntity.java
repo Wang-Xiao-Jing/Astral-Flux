@@ -2,6 +2,7 @@ package xiaojin.astralflux.common.entity.special;
 
 import com.google.common.base.MoreObjects;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import net.minecraft.commands.arguments.EntityAnchorArgument.Anchor;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -83,21 +84,23 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
   @Override
   public void tick() {
     super.tick();
-    var ownerEntity = getOwner();
+    var owner = this.getOwner();
     var isClientSide = level().isClientSide();
 
     // 检测是否需要增加或移除护盾
-    if (increaseOrRemoval(isClientSide, ownerEntity)) {
+    if (increaseOrRemoval(isClientSide, owner)) {
+      return;
+    }
+
+    if (Objects.isNull(owner)) {
       return;
     }
 
     turn(this.targetYRot, this.targetXRot);
 
-    if (ownerEntity != null) {
-      this.setPos(ownerEntity.getEyePosition());
-      this.setXRot(ownerEntity.xRotO);
-      this.setYRot(ownerEntity.yRotO);
-    }
+    this.setPos(owner.getEyePosition());
+    this.setXRot(owner.xRotO);
+    this.setYRot(owner.yRotO);
 
     // TODO重写逻辑目前异常
     var iterator = this.shieldList.entrySet().iterator();
@@ -105,35 +108,62 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
       final var entry = iterator.next();
       final var entity = entry.getValue();
       final int index = entry.getKey();
-      final var vec3 = new Vector3d(INDEX_VETEXS[index]);
+      if (!isClientSide && entity.isRemove()) {
+        entity.remove(RemovalReason.DISCARDED);
+        iterator.remove();
+      }
 
-      final Vec3 lookingVec = this.getLookAngle();
+      final var vec3 = new Vector3d(INDEX_VETEXS[index]);
+      final Vec3 lookingVec = owner.getLookAngle();
       final double angle = Math.atan2(lookingVec.x, lookingVec.z);
 
       // 位移到玩家位置，同时保持中心对齐
-      vec3.add(0, 0, 2);
+      vec3.add(0, 0, 2 + (index == 0 ? 0.5 : 0));
+      // vec3.rotateY(angle);
       vec3.rotateY(angle);
+
       var offsetPos = new Vec3(
         vec3.x + this.getX(),
         vec3.y + this.getY(),
         vec3.z + this.getZ()
       );
 
+
       entity.setPos(offsetPos);
       // 调整该处以适配旋转
       // entiey.turn(yRot, xRot);
-      entity.setXRot(this.getXRot());
+      entity.setXRot(0);
       entity.setYRot(this.getYRot());
 
-      if (!isClientSide && entity.isRemove()) {
-        entity.remove(RemovalReason.DISCARDED);
-        iterator.remove();
+      var vecLookAt = new Vector3d(lookingVec.x, lookingVec.y, lookingVec.z);
+      switch(index) {
+        case 1 -> {
+          entity.setXRot(-30);
+          entity.setYRot(entity.getYRot() - 30);
+        }
+        case 2 -> {
+          entity.setXRot(-30);
+          entity.setYRot(entity.getYRot() + 30);
+        }
+        case 3 -> {
+          entity.setYRot(entity.getYRot() + 30);
+        }
+        case 4 -> {
+          entity.setXRot(30);
+          entity.setYRot(entity.getYRot() + 30);
+        }
+        case 5 -> {
+          entity.setXRot(30);
+          entity.setYRot(entity.getYRot() - 30);
+        }
+        case 6 -> {
+          entity.setYRot(entity.getYRot() - 30);
+        }
+        default -> {}
       }
     }
 
-    if (ownerEntity != null) {
-      setTargetRot(ownerEntity.getYRot(), ownerEntity.getXRot());
-    }
+    this.setTargetRot(owner.getYRot(), owner.getXRot());
 
     if (this.isConsume()) {
       this.setConsumeTics(this.getConsumeTics() + 1);
