@@ -1,12 +1,6 @@
 package xiaojin.astralflux.eventadditional;
 
-import net.minecraft.util.Mth;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
-import net.neoforged.neoforge.event.tick.PlayerTickEvent;
-import xiaojin.astralflux.init.ModDateAttachmentTypes;
 
 public final class AegusBarrierEvents {
 

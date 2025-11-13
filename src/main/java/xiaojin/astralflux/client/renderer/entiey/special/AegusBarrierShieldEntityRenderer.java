@@ -2,20 +2,14 @@ package xiaojin.astralflux.client.renderer.entiey.special;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Axis;
-import net.minecraft.client.Camera;
-import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.client.color.item.ItemColors;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
-import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.ItemRenderer;
@@ -27,13 +21,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
-import software.bernie.geckolib.model.GeoModel;
-import software.bernie.geckolib.renderer.GeoEntityRenderer;
 import xiaojin.astralflux.common.entity.special.AegusBarrierShieldEntity;
 import xiaojin.astralflux.core.AstralFlux;
-import xiaojin.astralflux.init.ModDateAttachmentTypes;
 
 import java.util.List;
 
@@ -67,16 +57,22 @@ public class AegusBarrierShieldEntityRenderer extends EntityRenderer<AegusBarrie
                      final MultiBufferSource bufferSource, final int packedLight) {
     super.render(p_entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
     var combinedOverlay = OverlayTexture.NO_OVERLAY;
-    poseStack.mulPose(Axis.YP.rotation(-p_entity.getViewYRot(partialTick)));
-    poseStack.mulPose(Axis.XP.rotation(p_entity.getViewXRot(partialTick)));
+
+    poseStack.pushPose();
+//    poseStack.mulPose(Axis.YP.rotation(-p_entity.getViewYRot(partialTick)));
+//    poseStack.mulPose(Axis.XP.rotation(p_entity.getViewXRot(partialTick)));
+
+
+    poseStack.translate(-0.7f, -0.7f, -0.5f);
+    poseStack.scale(1.5f, 1.5f, 1);
+
     renderModel(poseStack, bufferSource, packedLight, combinedOverlay);
+
+    poseStack.popPose();
   }
 
   private void renderModel(final PoseStack poseStack, final MultiBufferSource bufferSource, final int combinedLight, final int combinedOverlay) {
     boolean flag1 = true;
-    poseStack.pushPose();
-    poseStack.translate(-0.7f, -0.7f, -0.5f);
-    poseStack.scale(1.5f, 1.5f, 1);
     for (BakedModel model : bakedModel.getRenderPasses(EMPTY_ITEM_STACK, flag1)) {
       for (RenderType rendertype : model.getRenderTypes(EMPTY_ITEM_STACK, flag1)) {
         VertexConsumer vertexconsumer = ItemRenderer.getFoilBufferDirect(bufferSource,
@@ -105,7 +101,6 @@ public class AegusBarrierShieldEntityRenderer extends EntityRenderer<AegusBarrie
           combinedOverlay);
       }
     }
-    poseStack.popPose();
   }
 
   private void renderQuadList(PoseStack poseStack, VertexConsumer buffer, List<BakedQuad> quads, ItemStack itemStack, int combinedLight, int combinedOverlay) {

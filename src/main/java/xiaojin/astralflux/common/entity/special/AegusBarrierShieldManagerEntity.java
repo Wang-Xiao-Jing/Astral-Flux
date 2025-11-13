@@ -1,14 +1,9 @@
 package xiaojin.astralflux.common.entity.special;
 
 import com.google.common.base.MoreObjects;
-import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
@@ -19,7 +14,7 @@ import net.minecraft.world.entity.TraceableEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Quaterniond;
+import org.joml.Vector3d;
 import xiaojin.astralflux.init.ModDateAttachmentTypes;
 import xiaojin.astralflux.init.ModEntityDataSerializers;
 import xiaojin.astralflux.init.ModEntityTypes;
@@ -47,7 +42,7 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
   /**
    * 子盾的旋转和位置映射
    */
-  private static final Quaterniond[] INDEX_VETEXS = ModUtil.getIndexVetexs(1.5f);
+  private static final Vector3d[] INDEX_VETEXS = ModUtil.getIndexVetexs60(1.5f);
 
   private final Map<Integer, AegusBarrierShieldEntity> shieldList = new Int2ObjectOpenHashMap<>(7);
 
@@ -99,31 +94,39 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     turn(this.targetYRot, this.targetXRot);
 
     if (ownerEntity != null) {
-      setPos(ownerEntity.getEyePosition());
+      this.setPos(ownerEntity.getEyePosition());
+      this.setXRot(ownerEntity.xRotO);
+      this.setYRot(ownerEntity.yRotO);
     }
 
     // TODO重写逻辑目前异常
     var iterator = this.shieldList.entrySet().iterator();
     while (iterator.hasNext()) {
-      var entry = iterator.next();
-      var shieldEntity = entry.getValue();
-      var index = entry.getKey();
-      var vetex = INDEX_VETEXS[index];
-      var vec3 = new Vec3(vetex.x(), vetex.y(), vetex.z());
+      final var entry = iterator.next();
+      final var entity = entry.getValue();
+      final int index = entry.getKey();
+      final var vec3 = new Vector3d(INDEX_VETEXS[index]);
 
-      var yRot = getYRot();
-      var xRot = getXRot();
+      final Vec3 lookingVec = this.getLookAngle();
+      final double angle = Math.atan2(lookingVec.x, lookingVec.z);
 
-      var pos = position()
-        .add(Vec3.directionFromRotation(yRot, xRot).scale(2))
-        .add(vec3.yRot(yRot).xRot(xRot));
+      // 位移到玩家位置，同时保持中心对齐
+      vec3.add(0, 0, 2);
+      vec3.rotateY(angle);
+      var offsetPos = new Vec3(
+        vec3.x + this.getX(),
+        vec3.y + this.getY(),
+        vec3.z + this.getZ()
+      );
 
-      shieldEntity.setPos(pos);
+      entity.setPos(offsetPos);
       // 调整该处以适配旋转
-      shieldEntity.turn(yRot, xRot);
+      // entiey.turn(yRot, xRot);
+      entity.setXRot(this.getXRot());
+      entity.setYRot(this.getYRot());
 
-      if (!isClientSide && shieldEntity.isRemove()) {
-        removeShieldEntity(index, shieldEntity);
+      if (!isClientSide && entity.isRemove()) {
+        entity.remove(RemovalReason.DISCARDED);
         iterator.remove();
       }
     }
@@ -195,6 +198,9 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
 
     var newEntiey = new AegusBarrierShieldEntity(level(), this);
     level().addFreshEntity(newEntiey);
+
+    // Fixme 为什么使用 map 而不是 list？
+    this.shieldList.put(count, newEntiey);
     addShieldEntity(count, newEntiey);
     this.setExpandsCount(count + 1);
     return true;

@@ -1,12 +1,8 @@
 package xiaojin.astralflux.common.entity.special;
 
 import com.google.common.base.MoreObjects;
-import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
@@ -20,7 +16,8 @@ import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animation.AnimatableManager;
 import xiaojin.astralflux.init.ModEntityTypes;
 
-import java.util.*;
+import java.util.Optional;
+import java.util.UUID;
 
 // TODO 添加拦截能力
 // TODO 记得在内部不阻止攻击
@@ -50,6 +47,7 @@ public class AegusBarrierShieldEntity extends Entity implements GeoEntity, Trace
     super(ModEntityTypes.AEGUS_BARRIER_SHIELD_ENTITY.get(), level);
     this.manager = manager;
     setOwner(manager.getOwner());
+    this.setIntact(false);
   }
 
   @Override
@@ -59,11 +57,6 @@ public class AegusBarrierShieldEntity extends Entity implements GeoEntity, Trace
       this.setIntact(true);
     }
     this.tickCount++;
-  }
-
-  @Override
-  public void remove(final RemovalReason reason) {
-    super.remove(reason);
   }
 
   @Nullable
