@@ -9,6 +9,7 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.Entity.RemovalReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TraceableEntity;
@@ -92,15 +93,14 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
       return;
     }
 
-    if (Objects.isNull(owner)) {
-      return;
-    }
 
     turn(this.targetYRot, this.targetXRot);
 
-    this.setPos(owner.getEyePosition());
-    this.setXRot(owner.xRotO);
-    this.setYRot(owner.yRotO);
+    if (owner != null) {
+      this.moveTo(owner.getEyePosition());
+      this.setXRot(owner.xRotO);
+      this.setYRot(owner.yRotO);
+    }
 
     // TODO重写逻辑目前异常
     var iterator = this.shieldList.entrySet().iterator();
@@ -108,13 +108,13 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
       final var entry = iterator.next();
       final var entity = entry.getValue();
       final int index = entry.getKey();
-      if (!isClientSide && entity.isRemove()) {
-        entity.remove(RemovalReason.DISCARDED);
-        iterator.remove();
+
+      if (Objects.isNull(entity)) {
+        continue;
       }
 
       final var vec3 = new Vector3d(INDEX_VETEXS[index]);
-      final Vec3 lookingVec = owner.getLookAngle();
+      final Vec3 lookingVec = this.getLookAngle();
       final double angle = Math.atan2(lookingVec.x, lookingVec.z);
 
       // 位移到玩家位置，同时保持中心对齐
@@ -128,8 +128,7 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
         vec3.z + this.getZ()
       );
 
-
-      entity.setPos(offsetPos);
+      entity.moveTo(offsetPos);
       // 调整该处以适配旋转
       // entiey.turn(yRot, xRot);
       entity.setXRot(0);
@@ -161,9 +160,16 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
         }
         default -> {}
       }
+
+      if (!isClientSide && entity.isRemove()) {
+        entity.remove(RemovalReason.DISCARDED);
+        iterator.remove();
+      }
     }
 
-    this.setTargetRot(owner.getYRot(), owner.getXRot());
+    if (owner != null) {
+      setTargetRot(owner.getYRot(), owner.getXRot());
+    }
 
     if (this.isConsume()) {
       this.setConsumeTics(this.getConsumeTics() + 1);

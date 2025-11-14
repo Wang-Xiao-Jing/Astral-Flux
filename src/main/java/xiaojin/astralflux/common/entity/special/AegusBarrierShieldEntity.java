@@ -8,8 +8,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.TraceableEntity;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.entity.TraceableEntity;import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
@@ -20,7 +19,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 // TODO 添加拦截能力
-// TODO 记得在内部不阻止攻击
 public class AegusBarrierShieldEntity extends Entity implements GeoEntity, TraceableEntity {
   public static final EntityDataAccessor<Optional<UUID>> OWNER_UUID_ACCESSOR =
     SynchedEntityData.defineId(AegusBarrierShieldEntity.class, EntityDataSerializers.OPTIONAL_UUID);
@@ -98,6 +96,11 @@ public class AegusBarrierShieldEntity extends Entity implements GeoEntity, Trace
   public void setOwner(@Nullable final Entity owner) {
     this.cachedOwner = owner;
     this.ownerUUID = owner != null ? owner.getUUID() : null;
+  }
+
+  @Override
+  public boolean canBeHitByProjectile() {
+    return true;
   }
 
   @Override
