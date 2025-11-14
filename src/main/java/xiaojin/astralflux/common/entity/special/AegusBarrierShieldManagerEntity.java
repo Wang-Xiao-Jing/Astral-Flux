@@ -10,6 +10,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -177,6 +178,11 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
       .rotateY(angle);
 
     return new Vec3(vec3.x + v.x, vec3.y + v.y, vec3.z + v.z);
+  }
+
+  @Override
+  public AABB getBoundingBoxForCulling() {
+    return super.getBoundingBoxForCulling();
   }
 
   private void removeShieldEntity(int index, final AegusBarrierShieldEntity shieldEntity) {
