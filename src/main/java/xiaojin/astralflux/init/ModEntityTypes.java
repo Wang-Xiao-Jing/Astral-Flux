@@ -17,12 +17,17 @@ public final class ModEntityTypes extends EntityTypeRegisterUtil {
     AegusBarrierShieldManagerEntity::new, MobCategory.MISC, builder -> builder
       .sized(0, 0)
       .fireImmune()
+      .clientTrackingRange(4)
+      .updateInterval(20)
       .noSave()
       .noSummon());
 
   public static final DeferredHolder<EntityType<?>, EntityType<AegusBarrierShieldEntity>> AEGUS_BARRIER_SHIELD_ENTITY = register("aegus_barrier_shield",
     AegusBarrierShieldEntity::new, MobCategory.MISC, builder -> builder
       .sized(1.5f, 1.5f)
+      .eyeHeight(0.5f)
+      .clientTrackingRange(4)
+      .updateInterval(20)
       .fireImmune()
       .noSave()
       .noSummon());

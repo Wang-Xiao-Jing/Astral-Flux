@@ -2,19 +2,16 @@ package xiaojin.astralflux.common.entity.special;
 
 import com.google.common.base.MoreObjects;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.minecraft.commands.arguments.EntityAnchorArgument.Anchor;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.Entity.RemovalReason;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.TraceableEntity;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
 import xiaojin.astralflux.init.ModDateAttachmentTypes;
@@ -68,6 +65,57 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     setOwner(owner);
   }
 
+  @Override
+  public void tick() {
+    var owner = this.getOwner();
+    var isClientSide = level().isClientSide();
+    if (owner == null) {
+      if (!isClientSide) {
+        remove(RemovalReason.DISCARDED);
+      }
+      return;
+    }
+
+    // 检测是否需要增加或移除护盾
+    if (increaseOrRemoval(isClientSide, owner)) {
+      return;
+    }
+    super.tick();
+
+    var position = owner.getEyePosition();
+    setOldPosAndRot();
+    setPos(position);
+    setRot(owner.getYRot(), owner.getXRot());
+
+    final Vec3 lookingVec = this.getLookAngle();
+    final double angle = Math.atan2(lookingVec.x, lookingVec.z);
+
+    var iterator = this.shieldList.entrySet().iterator();
+    while (iterator.hasNext()) {
+      final var entry = iterator.next();
+      final var shieldEntity = entry.getValue();
+      final int index = entry.getKey();
+
+      var offsetPos = getOffsetPos(index, angle, position);
+
+      var result = getResult(index);
+      shieldEntity.setOldPosAndRot();
+      shieldEntity.setPos(offsetPos);
+      shieldEntity.setYRot(result.entityYRot() % 360.0F);
+      shieldEntity.setXRot(result.entityXRot() % 360.0F);
+
+      if (!isClientSide && shieldEntity.isRemove()) {
+        shieldEntity.remove(RemovalReason.DISCARDED);
+        removeShieldEntity(index, shieldEntity);
+        iterator.remove();
+      }
+    }
+
+    if (this.isConsume()) {
+      this.setConsumeTics(this.getConsumeTics() + 1);
+    }
+  }
+
   public void setOwner(@Nullable final Entity owner) {
     this.cachedOwner = owner;
     this.ownerUUID = owner != null ? owner.getUUID() : null;
@@ -77,103 +125,58 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     }
   }
 
-  @Nullable
-  public AegusBarrierShieldEntity getShield(int index) {
-    return this.shieldList.get(index);
+  public Map<Integer, AegusBarrierShieldEntity> getShieldList() {
+    return Map.copyOf(this.shieldList);
   }
 
-  @Override
-  public void tick() {
-    super.tick();
-    var owner = this.getOwner();
-    var isClientSide = level().isClientSide();
+  private @NotNull Result getResult(final int index) {
+    float entityXRot = 0;
+    float entityYRot = this.getYRot() ;
 
-    // 检测是否需要增加或移除护盾
-    if (increaseOrRemoval(isClientSide, owner)) {
-      return;
-    }
-
-
-    turn(this.targetYRot, this.targetXRot);
-
-    if (owner != null) {
-      this.moveTo(owner.getEyePosition());
-      this.setXRot(owner.xRotO);
-      this.setYRot(owner.yRotO);
-    }
-
-    // TODO重写逻辑目前异常
-    var iterator = this.shieldList.entrySet().iterator();
-    while (iterator.hasNext()) {
-      final var entry = iterator.next();
-      final var entity = entry.getValue();
-      final int index = entry.getKey();
-
-      if (Objects.isNull(entity)) {
-        continue;
+    switch(index) {
+      case 1 -> {
+        entityXRot = -30;
+        entityYRot = entityYRot - 30;
       }
-
-      final var vec3 = new Vector3d(INDEX_VETEXS[index]);
-      final Vec3 lookingVec = this.getLookAngle();
-      final double angle = Math.atan2(lookingVec.x, lookingVec.z);
-
-      // 位移到玩家位置，同时保持中心对齐
-      vec3.add(0, 0, 2 + (index == 0 ? 0.5 : 0));
-      // vec3.rotateY(angle);
-      vec3.rotateY(angle);
-
-      var offsetPos = new Vec3(
-        vec3.x + this.getX(),
-        vec3.y + this.getY(),
-        vec3.z + this.getZ()
-      );
-
-      entity.moveTo(offsetPos);
-      // 调整该处以适配旋转
-      // entiey.turn(yRot, xRot);
-      entity.setXRot(0);
-      entity.setYRot(this.getYRot());
-
-      var vecLookAt = new Vector3d(lookingVec.x, lookingVec.y, lookingVec.z);
-      switch(index) {
-        case 1 -> {
-          entity.setXRot(-30);
-          entity.setYRot(entity.getYRot() - 30);
-        }
-        case 2 -> {
-          entity.setXRot(-30);
-          entity.setYRot(entity.getYRot() + 30);
-        }
-        case 3 -> {
-          entity.setYRot(entity.getYRot() + 30);
-        }
-        case 4 -> {
-          entity.setXRot(30);
-          entity.setYRot(entity.getYRot() + 30);
-        }
-        case 5 -> {
-          entity.setXRot(30);
-          entity.setYRot(entity.getYRot() - 30);
-        }
-        case 6 -> {
-          entity.setYRot(entity.getYRot() - 30);
-        }
-        default -> {}
+      case 2 -> {
+        entityXRot = -30;
+        entityYRot = entityYRot + 30;
       }
-
-      if (!isClientSide && entity.isRemove()) {
-        entity.remove(RemovalReason.DISCARDED);
-        iterator.remove();
+      case 3 -> {
+        entityYRot = entityYRot + 30;
+      }
+      case 4 -> {
+        entityXRot = 30;
+        entityYRot = entityYRot + 30;
+      }
+      case 5 -> {
+        entityXRot = 30;
+        entityYRot = entityYRot - 30;
+      }
+      case 6 -> {
+        entityYRot = entityYRot - 30;;
       }
     }
+    return new Result(entityXRot, entityYRot);
+  }
 
-    if (owner != null) {
-      setTargetRot(owner.getYRot(), owner.getXRot());
-    }
+  private static float curtailYRot(float y) {
+    return y % 360.0F;
+  }
 
-    if (this.isConsume()) {
-      this.setConsumeTics(this.getConsumeTics() + 1);
-    }
+  private static float curtailXRot(float r) {
+    return Mth.clamp(r, -90.0F, 90.0F) % 360.0F;
+  }
+
+  private record Result(float entityXRot, float entityYRot) { }
+
+  private @NotNull Vec3 getOffsetPos(final int index, final double angle, final Vec3 v) {
+    // 位移到玩家位置，同时保持中心对齐
+    final var vec3 = new Vector3d(INDEX_VETEXS[index])
+      .add(0, 0, 2 + (index == 0 ? 0.5 : 0))
+      .rotateY(angle);
+
+    return new Vec3(vec3.x + v.x, vec3.y + v.y, vec3.z + v.z);
   }
 
   private void removeShieldEntity(int index, final AegusBarrierShieldEntity shieldEntity) {
@@ -211,7 +214,7 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
       }
     }
     // 添加盾牌
-    if (this.tickCount % (4.0) == 0) {
+    if (this.tickCount % (4) == 0) {
       addShield();
       if (!this.isConsume()) {
         setConsume(true);
@@ -233,11 +236,11 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     }
 
     var newEntiey = new AegusBarrierShieldEntity(level(), this);
-    level().addFreshEntity(newEntiey);
-
-    // Fixme 为什么使用 map 而不是 list？
-    this.shieldList.put(count, newEntiey);
+    final Vec3 lookingVec = this.getLookAngle();
+    final double angle = Math.atan2(lookingVec.x, lookingVec.z);
+    newEntiey.setPos(getOffsetPos(0, angle, position()));
     addShieldEntity(count, newEntiey);
+    level().addFreshEntity(newEntiey);
     this.setExpandsCount(count + 1);
     return true;
   }
@@ -273,27 +276,15 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     if (dataValue.isEmpty()){
       return;
     }
+    this.shieldList.clear();
     var uuidIntegerMap = (Map<Integer, Map.Entry<Integer, UUID>>) dataValue.orElseThrow().value();
     for (var entry : uuidIntegerMap.entrySet()) {
       var number = entry.getKey();
       var integerUUIDEntry = entry.getValue();
       var shieldEntity = this.level().getEntity(integerUUIDEntry.getKey());
-      assert shieldEntity instanceof AegusBarrierShieldEntity || !shieldEntity.getUUID().equals(integerUUIDEntry.getValue()) : "Shield entity not found";
+      assert shieldEntity instanceof AegusBarrierShieldEntity || shieldEntity.getUUID().equals(integerUUIDEntry.getValue()) : "Shield entity not found";
       this.shieldList.put(number, (AegusBarrierShieldEntity) shieldEntity);
     }
-  }
-
-  public void setTargetYRot(float targetYRot) {
-    this.targetYRot = targetYRot;
-  }
-
-  public void setTargetXRot(float targetXRot) {
-    this.targetXRot = targetXRot;
-  }
-
-  public void setTargetRot(float xRot, float yRot) {
-    this.setTargetXRot(xRot);
-    this.setTargetYRot(yRot);
   }
 
   @Nullable

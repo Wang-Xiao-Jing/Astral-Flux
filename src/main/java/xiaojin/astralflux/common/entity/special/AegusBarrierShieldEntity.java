@@ -50,11 +50,10 @@ public class AegusBarrierShieldEntity extends Entity implements GeoEntity, Trace
 
   @Override
   public void tick() {
-    super.tick();
     if (this.tickCount >= 20 * 0.2 && !isIntact()) {
       this.setIntact(true);
     }
-    this.tickCount++;
+    super.tick();
   }
 
   @Nullable

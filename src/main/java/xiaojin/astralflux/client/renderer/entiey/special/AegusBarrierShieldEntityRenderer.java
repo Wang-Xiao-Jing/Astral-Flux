@@ -1,6 +1,5 @@
 package xiaojin.astralflux.client.renderer.entiey.special;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
@@ -9,6 +8,7 @@ import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.client.color.item.ItemColors;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -61,26 +61,16 @@ public class AegusBarrierShieldEntityRenderer extends EntityRenderer<AegusBarrie
                      final PoseStack poseStack,
                      final MultiBufferSource bufferSource, final int packedLight) {
     super.render(pEntity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
-
-
     poseStack.pushPose();
 
-    final Vec3 lookingVec = pEntity.getLookAngle();
-    final double angleX = Math.atan2(lookingVec.x, lookingVec.z);
-    final double angleY = Math.atan(-lookingVec.y);
-
-    poseStack.mulPose(Axis.YP.rotation((float) angleX));
-    poseStack.mulPose(Axis.XP.rotation((float) angleY));
-
-    // poseStack.mulPose(Axis.YP.rotation(-pEntity.getViewYRot(partialTick)));
-    // poseStack.mulPose(Axis.XP.rotation(pEntity.getViewXRot(partialTick)));
-
-    poseStack.translate(-0.7f, -0.7f, -0.5f);
+    final Vec3 lookingVec = pEntity.getViewVector(partialTick);
+    final double angleY = Math.atan2(lookingVec.x, lookingVec.z);
+    final double angleX = Math.atan(-lookingVec.y);
+    poseStack.mulPose(Axis.YP.rotation((float) angleY));
+    poseStack.mulPose(Axis.XP.rotation((float) angleX));
     poseStack.scale(1.5f, 1.5f, 1);
-
-    var combinedOverlay = OverlayTexture.NO_OVERLAY;
-    renderModel(poseStack, bufferSource, packedLight, combinedOverlay);
-
+    poseStack.translate(-0.5f, -0.5f, -0.5f);
+    renderModel(poseStack, bufferSource, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
     poseStack.popPose();
   }
 
@@ -92,6 +82,7 @@ public class AegusBarrierShieldEntityRenderer extends EntityRenderer<AegusBarrie
           rendertype,
           false,
           EMPTY_ITEM_STACK.hasFoil());
+        vertexconsumer.setColor(1f, 1f, 1f, 0.2f);
         RandomSource randomsource = RandomSource.create();
         long i = 42L;
 
