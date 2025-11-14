@@ -25,11 +25,13 @@ public class AegusBarrierShieldEntity extends Entity implements GeoEntity, Trace
   public static final EntityDataAccessor<Boolean> IS_INTACT_ACCESSOR =
     SynchedEntityData.defineId(AegusBarrierShieldEntity.class, EntityDataSerializers.BOOLEAN);
 
+
+
   private int tick;
   /**
    * 是否移除
    */
-  private boolean isRemove;
+  private boolean shouldRemove;
   @Nullable
   private UUID ownerUUID;
   @Nullable
@@ -103,7 +105,7 @@ public class AegusBarrierShieldEntity extends Entity implements GeoEntity, Trace
   }
 
   @Override
-  protected void defineSynchedData(final SynchedEntityData.Builder builder) {
+  public void defineSynchedData(final SynchedEntityData.Builder builder) {
     builder.define(OWNER_UUID_ACCESSOR, Optional.empty());
     builder.define(IS_INTACT_ACCESSOR, false);
   }
@@ -128,8 +130,8 @@ public class AegusBarrierShieldEntity extends Entity implements GeoEntity, Trace
   }
 
   // TODO isIntact不为false时 被攻击到移除
-  public boolean isRemove() {
-    return isRemove;
+  public boolean shouldRemove() {
+    return shouldRemove;
   }
 
   public boolean isIntact() {

@@ -63,7 +63,7 @@ public class AegusBarrierShieldEntityRenderer extends EntityRenderer<AegusBarrie
     super.render(pEntity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
     poseStack.pushPose();
 
-    final Vec3 lookingVec = pEntity.getViewVector(partialTick);
+    final Vec3 lookingVec = pEntity.getLookAngle();
     final double angleY = Math.atan2(lookingVec.x, lookingVec.z);
     final double angleX = Math.atan(-lookingVec.y);
     poseStack.mulPose(Axis.YP.rotation((float) angleY));

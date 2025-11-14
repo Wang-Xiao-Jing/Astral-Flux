@@ -51,5 +51,6 @@ public class AABBAegusBarriesShield extends AABB {
     // 证明投射线段将要通过当前平面边缘两点
     // TODO
 
+    return Optional.empty();
   }
 }

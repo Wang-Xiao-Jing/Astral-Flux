@@ -91,6 +91,7 @@ public class SourceSoulBarLayerDraw implements LayeredDraw.Layer {
     }
     this.player = this.minecraft.player;
     var existingDataOrNull = player.getExistingDataOrNull(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD);
+/*
     if (existingDataOrNull != null) {
       int x = 1;
       int y = 1;
@@ -113,6 +114,7 @@ public class SourceSoulBarLayerDraw implements LayeredDraw.Layer {
         y += font.lineHeight + 1;
       }
     }
+*/
     var oldValue = this.value;
     var oldMaxValue = this.maxValue;
     var newValue = SourceSoulUtil.getValue(this.player);

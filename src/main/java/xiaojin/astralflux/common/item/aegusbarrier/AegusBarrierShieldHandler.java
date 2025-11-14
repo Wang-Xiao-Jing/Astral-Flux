@@ -41,6 +41,7 @@ public final class AegusBarrierShieldHandler {
   public static AegusBarrierShieldHandler create(Player player) {
     var level = player.level();
     var entity = new AegusBarrierShieldManagerEntity(level, player);
+    entity.setPos(player.position());
     level.addFreshEntity(entity);
     var data = new AegusBarrierShieldHandler(entity);
     player.setData(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD, data);

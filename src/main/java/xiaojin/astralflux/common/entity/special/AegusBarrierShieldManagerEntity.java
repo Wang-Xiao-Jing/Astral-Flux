@@ -2,26 +2,37 @@ package xiaojin.astralflux.common.entity.special;
 
 import com.google.common.base.MoreObjects;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerEntity;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.Entity.RemovalReason;
+import net.minecraft.world.entity.animal.Cow;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.fml.loading.FMLLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector2f;
 import org.joml.Vector3d;
+import org.joml.Vector3f;
 import xiaojin.astralflux.init.ModDateAttachmentTypes;
 import xiaojin.astralflux.init.ModEntityDataSerializers;
 import xiaojin.astralflux.init.ModEntityTypes;
 import xiaojin.astralflux.util.ModUtil;
 import xiaojin.astralflux.util.SourceSoulUtil;
 
+import javax.annotation.Nonnull;
 import java.util.*;
+import java.util.Map.Entry;
 
 public class AegusBarrierShieldManagerEntity extends Entity implements TraceableEntity {
   public static final EntityDataAccessor<Optional<UUID>> OWNER_UUID_ACCESSOR =
@@ -38,6 +49,13 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     SynchedEntityData.defineId(AegusBarrierShieldManagerEntity.class, ModEntityDataSerializers.AEGUS_BARRIER_SHIELD_MANAGER_SHIELDS.get());
 
   public static final int CONSUME_VALUE = -15;
+
+  private double lerpPosX;
+  private double lerpPosY;
+  private double lerpPosZ;
+  private double lerpYRot;
+  private double lerpXRot;
+  private int lerpStep;
 
   /**
    * 子盾的旋转和位置映射
@@ -68,53 +86,85 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
 
   @Override
   public void tick() {
-    var owner = this.getOwner();
-    var isClientSide = level().isClientSide();
-    if (owner == null) {
+    Entity owner = this.getOwner();
+    final boolean isClientSide = this.level().isClientSide();
+
+    if (Objects.isNull(owner)) {
       if (!isClientSide) {
         remove(RemovalReason.DISCARDED);
       }
       return;
     }
 
+
     // 检测是否需要增加或移除护盾
     if (increaseOrRemoval(isClientSide, owner)) {
       return;
     }
+
     super.tick();
 
-    var position = owner.getEyePosition();
-    setOldPosAndRot();
-    setPos(position);
-    setRot(owner.getYRot(), owner.getXRot());
+    final Vec3 position = owner.getEyePosition();
 
-    final Vec3 lookingVec = this.getLookAngle();
-    final double angle = Math.atan2(lookingVec.x, lookingVec.z);
-
-    var iterator = this.shieldList.entrySet().iterator();
-    while (iterator.hasNext()) {
-      final var entry = iterator.next();
-      final var shieldEntity = entry.getValue();
-      final int index = entry.getKey();
-
-      var offsetPos = getOffsetPos(index, angle, position);
-
-      var result = getResult(index);
-      shieldEntity.setOldPosAndRot();
-      shieldEntity.setPos(offsetPos);
-      shieldEntity.setYRot(result.entityYRot() % 360.0F);
-      shieldEntity.setXRot(result.entityXRot() % 360.0F);
-
-      if (!isClientSide && shieldEntity.isRemove()) {
-        shieldEntity.remove(RemovalReason.DISCARDED);
-        removeShieldEntity(index, shieldEntity);
-        iterator.remove();
-      }
+    if (!this.position().equals(position) && shouldUpdateLerp(position, owner)) {
+      this.lerpTo(position.x, position.y, position.z, owner.getYRot(), owner.getXRot(), 5);
     }
+
+    if (this.lerpStep > 0) {
+      this.lerpPositionAndRotationStep(
+        this.lerpStep--,
+        this.lerpPosX,
+        this.lerpPosY,
+        this.lerpPosZ,
+        this.lerpYRot,
+        this.lerpXRot
+      );
+    }
+
+    this.tweaksSubShields(owner);
 
     if (this.isConsume()) {
       this.setConsumeTics(this.getConsumeTics() + 1);
     }
+  }
+
+  private void tweaksSubShields(@Nonnull final Entity owner) {
+    final Vec3 lookingVec = this.getLookAngle();
+
+    final double angle = Math.atan2(lookingVec.x, lookingVec.z);
+    final var shieldSet = this.shieldList.entrySet();
+
+    shieldSet.forEach(entry -> {
+      final int index = entry.getKey();
+      final var shieldEntity = entry.getValue();
+
+      var offsetPos = getOffsetPos(index, angle, this.position());
+      var result = getResult(index);
+
+      shieldEntity.moveTo(offsetPos.x, offsetPos.y, offsetPos.z, result.y, result.x);
+    });
+
+    shieldSet.stream()
+      .filter(it -> it.getValue().shouldRemove())
+      .forEach(this::removeShieldEntity);
+  }
+
+  @Override
+  public void lerpTo(double x, double y, double z, float yRot, float xRot, int steps) {
+    this.lerpPosX = x;
+    this.lerpPosY = y;
+    this.lerpPosZ = z;
+    this.lerpYRot = yRot;
+    this.lerpXRot = xRot;
+    this.lerpStep = steps;
+  }
+
+  private boolean shouldUpdateLerp(Vec3 pos, Entity owner) {
+    return this.lerpPosX != pos.x
+      || this.lerpPosY != pos.y
+      || this.lerpPosZ != pos.z
+      || this.lerpYRot != owner.getYRot()
+      || this.lerpXRot != owner.getXRot();
   }
 
   public void setOwner(@Nullable final Entity owner) {
@@ -130,7 +180,8 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     return Map.copyOf(this.shieldList);
   }
 
-  private @NotNull Result getResult(final int index) {
+  @Nonnull
+  private Vector2f getResult(final int index) {
     float entityXRot = 0;
     float entityYRot = this.getYRot() ;
 
@@ -155,10 +206,11 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
         entityYRot = entityYRot - 30;
       }
       case 6 -> {
-        entityYRot = entityYRot - 30;;
+        entityYRot = entityYRot - 30;
       }
     }
-    return new Result(entityXRot, entityYRot);
+
+    return new Vector2f(entityXRot, entityYRot);
   }
 
   private static float curtailYRot(float y) {
@@ -169,8 +221,6 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     return Mth.clamp(r, -90.0F, 90.0F) % 360.0F;
   }
 
-  private record Result(float entityXRot, float entityYRot) { }
-
   private @NotNull Vec3 getOffsetPos(final int index, final double angle, final Vec3 v) {
     // 位移到玩家位置，同时保持中心对齐
     final var vec3 = new Vector3d(INDEX_VETEXS[index])
@@ -180,9 +230,10 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     return new Vec3(vec3.x + v.x, vec3.y + v.y, vec3.z + v.z);
   }
 
-  @Override
-  public AABB getBoundingBoxForCulling() {
-    return super.getBoundingBoxForCulling();
+
+  private void removeShieldEntity(final Entry<Integer, AegusBarrierShieldEntity> entry) {
+    this.removeShieldEntity(entry.getKey(), entry.getValue());
+    this.shieldList.remove(entry.getKey());
   }
 
   private void removeShieldEntity(int index, final AegusBarrierShieldEntity shieldEntity) {
@@ -244,7 +295,7 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     var newEntiey = new AegusBarrierShieldEntity(level(), this);
     final Vec3 lookingVec = this.getLookAngle();
     final double angle = Math.atan2(lookingVec.x, lookingVec.z);
-    newEntiey.setPos(getOffsetPos(0, angle, position()));
+    newEntiey.setPos(getOffsetPos(0, angle, this.position()));
     addShieldEntity(count, newEntiey);
     level().addFreshEntity(newEntiey);
     this.setExpandsCount(count + 1);
