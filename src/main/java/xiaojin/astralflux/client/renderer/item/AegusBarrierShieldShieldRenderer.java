@@ -92,7 +92,7 @@ public class AegusBarrierShieldShieldRenderer implements ModRender {
 
     var eyePosition = player.getEyePosition(partialTicks);
     var pos = eyePosition.add(direction.scale(2f));
-    poseStack.translate(pos.x, pos.y + 0.5, pos.z);
+    poseStack.translate(pos.x, pos.y, pos.z);
 
     poseStack.mulPose(Axis.YP.rotation(-yaw));
     // poseStack.mulPose(Axis.XP.rotation(pitch));
