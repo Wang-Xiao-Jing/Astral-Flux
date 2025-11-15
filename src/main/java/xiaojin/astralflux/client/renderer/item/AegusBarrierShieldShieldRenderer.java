@@ -34,7 +34,7 @@ import java.util.Objects;
 /**
  * 埃癸斯壁垒盾牌渲染
  */
-public class AegusBarrierShieldShieldRendererBak implements ModRender {
+public class AegusBarrierShieldShieldRenderer implements ModRender {
   private static final ItemStack EMPTY_ITEM_STACK = ItemStack.EMPTY;
   public static final ResourceLocation MODDED_RL = AstralFlux.modRL("entity/aegus_barrier_shield");
   public static final ModelResourceLocation MODEL_RESOURCE_LOCATION =
@@ -42,9 +42,9 @@ public class AegusBarrierShieldShieldRendererBak implements ModRender {
   private static final ItemColors ITEM_COLORS_COLOR = ItemColors.createDefault(BlockColors.createDefault());
   private BakedModel bakedModel;
 
-  public static final AegusBarrierShieldShieldRendererBak INSTANCE = new AegusBarrierShieldShieldRendererBak();
+  public static final AegusBarrierShieldShieldRenderer INSTANCE = new AegusBarrierShieldShieldRenderer();
 
-  private AegusBarrierShieldShieldRendererBak() {}
+  private AegusBarrierShieldShieldRenderer() {}
 
   @Override
   public void levelRender(final Minecraft minecraft,
@@ -129,13 +129,13 @@ public class AegusBarrierShieldShieldRendererBak implements ModRender {
   }
 
   private void renderQuadList(PoseStack poseStack, VertexConsumer buffer, List<BakedQuad> quads) {
-    boolean flag = !AegusBarrierShieldShieldRendererBak.EMPTY_ITEM_STACK.isEmpty();
+    boolean flag = !AegusBarrierShieldShieldRenderer.EMPTY_ITEM_STACK.isEmpty();
     var posestack$pose = poseStack.last();
 
     for (var bakedquad : quads) {
       int i = -1;
       if (flag && bakedquad.isTinted()) {
-        i = ITEM_COLORS_COLOR.getColor(AegusBarrierShieldShieldRendererBak.EMPTY_ITEM_STACK, bakedquad.getTintIndex());
+        i = ITEM_COLORS_COLOR.getColor(AegusBarrierShieldShieldRenderer.EMPTY_ITEM_STACK, bakedquad.getTintIndex());
       }
 
       float f = (float) FastColor.ARGB32.alpha(i) / 255.0F;

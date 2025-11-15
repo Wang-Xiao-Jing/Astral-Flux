@@ -8,7 +8,7 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
-import xiaojin.astralflux.client.renderer.item.AegusBarrierShieldShieldRendererBak;
+import xiaojin.astralflux.client.renderer.item.AegusBarrierShieldShieldRenderer;
 import xiaojin.astralflux.core.AstralFlux;
 import xiaojin.astralflux.core.AstralFluxKey;
 
@@ -28,7 +28,7 @@ public final class AstralFluxClient {
 
   @SubscribeEvent
   public static void RegisterAdditional(ModelEvent.RegisterAdditional event) {
-    event.register(AegusBarrierShieldShieldRendererBak.MODEL_RESOURCE_LOCATION);
+    event.register(AegusBarrierShieldShieldRenderer.MODEL_RESOURCE_LOCATION);
   }
 
   @SubscribeEvent
