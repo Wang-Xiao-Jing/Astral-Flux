@@ -14,7 +14,7 @@ public abstract class AbstractAegusBarrierShieldManager extends Entity {
   public AbstractAegusBarrierShieldManager(Level level) {
     super(ModEntityTypes.AEGUS_BARRIER_SHIELD_MANAGER_ENTITY.get(), level);
     Arrays.fill(this.getShields(), new AegusBarrierShieldEntity(level, this));
-    Arrays.fill(this.getShieldExpandingProcessor(), 0.0);
+    Arrays.fill(this.getExpandingProgress(), 0.0);
   }
 
   /**
@@ -25,7 +25,7 @@ public abstract class AbstractAegusBarrierShieldManager extends Entity {
   /**
    * 获取护盾展开进度。 0.0 为未展开，1.0 为完全展开，-1.0 为失效。
    */
-  abstract public double[] getShieldExpandingProcessor();
+  abstract public double[] getExpandingProgress();
 
   /**
    * 获取全部护盾。
@@ -36,7 +36,7 @@ public abstract class AbstractAegusBarrierShieldManager extends Entity {
    * 获取是否依然处于展开状态。
    */
   public boolean isStillInExpanding() {
-    return Arrays.stream(getShieldExpandingProcessor()).allMatch(it -> it == 1.0);
+    return Arrays.stream(getExpandingProgress()).allMatch(it -> it == 1.0);
   }
 
   /**
@@ -48,6 +48,16 @@ public abstract class AbstractAegusBarrierShieldManager extends Entity {
 
   public boolean isEmpty() {
     return this.allInExpired();
+  }
+
+  public void removeShield(final int index) {
+    this.getShields()[index] = null;
+    this.getExpandingProgress()[index] = -1.0;
+  }
+
+  public void addShield(final int index) {
+    this.getShields()[index] = new AegusBarrierShieldEntity(this.level(), this);
+    this.getExpandingProgress()[index] = 0.0;
   }
 
   @Override

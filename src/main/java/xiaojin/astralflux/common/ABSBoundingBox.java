@@ -2,17 +2,16 @@ package xiaojin.astralflux.common;
 
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector2d;
 import xiaojin.astralflux.common.entity.special.AegusBarrierShieldEntity;
 
 import java.util.Optional;
 
-public class AABBAegusBarriesShield extends AABB {
+public class ABSBoundingBox extends AABB {
   public final AegusBarrierShieldEntity abs;
 
-  public AABBAegusBarriesShield(AegusBarrierShieldEntity abs) {
+  public ABSBoundingBox(AegusBarrierShieldEntity abs) {
     super(abs.blockPosition());
     this.abs = abs;
   }

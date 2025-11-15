@@ -1,7 +1,9 @@
 package xiaojin.astralflux.event.entity;
 
 import ctn.ctnapi.util.PayloadUtil;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.RelativeMovement;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -11,18 +13,18 @@ import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
-import org.jetbrains.annotations.ApiStatus.Internal;
 import xiaojin.astralflux.api.ItemLeftClickEmpty;
 import xiaojin.astralflux.client.gui.layers.SourceSoulBarLayerDraw;
-import xiaojin.astralflux.common.entity.special.AegusBarrierShieldManager;
 import xiaojin.astralflux.common.payloads.PlayerLeftClickEmptyPayload;
 import xiaojin.astralflux.eventadditional.SourceSoulEvents;
 import xiaojin.astralflux.events.PlayerLeftClickEmptyEvent;
 import xiaojin.astralflux.events.sourcesoul.SourceSoulModifyEvent;
-import xiaojin.astralflux.init.ModAttributes;
+import xiaojin.astralflux.init.ModDateAttachmentTypes;
 import xiaojin.astralflux.mixin.api.IModPlayer;
+import xiaojin.astralflux.util.ABSHelper;
 import xiaojin.astralflux.util.DirtHelper;
 
+import java.util.EnumSet;
 import java.util.Objects;
 
 @EventBusSubscriber
@@ -82,7 +84,7 @@ public final class PlayerEvents {
    * 左键点击空（客户端）
    */
   @SubscribeEvent
-  public static void playerInteractEventLeftClickEmpty(final PlayerInteractEvent.LeftClickEmpty event) {
+  public static void playerInteractEventLeftClickEmpty(PlayerInteractEvent.LeftClickEmpty event) {
     playerLeftClickEmpty(event);
   }
 
@@ -90,7 +92,7 @@ public final class PlayerEvents {
    * 左键点击方块
    */
   @SubscribeEvent
-  public static void playerInteractEventLeftClickBlock(final PlayerInteractEvent.LeftClickBlock event) {
+  public static void playerInteractEventLeftClickBlock(PlayerInteractEvent.LeftClickBlock event) {
     playerLeftClickEmpty(event);
   }
 
@@ -118,14 +120,34 @@ public final class PlayerEvents {
 
     if (manager.allInExpired()) {
       modPlayer.astralFlux$setShieldManager(null);
+      player.setData(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD, "");
       return;
     }
 
     manager.setOldPosAndRot();
+
+    if (manager.level() != player.level()) {
+      manager.teleportTo(
+        (ServerLevel) player.level(),
+        player.getX(),
+        player.getY(),
+        player.getZ(),
+        EnumSet.noneOf(RelativeMovement.class),
+        player.getYRot(),
+        player.getXRot()
+      );
+      return;
+    }
+
     manager.moveTo(player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot());
+
+    final var data = player.getExistingData(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD);
+    final String dataNew = ABSHelper.encodeArray(manager.getExpandingProgress());
+    if (data.isEmpty() || !data.get().equals(dataNew)) {
+      player.setData(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD, dataNew);
+    }
   }
 
-  @Internal
   private static void playerLeftClickEmpty(final PlayerInteractEvent event) {
     DirtHelper.runDirt(event.getSide(),
       () -> {

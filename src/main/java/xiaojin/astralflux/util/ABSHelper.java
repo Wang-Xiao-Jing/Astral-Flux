@@ -36,26 +36,28 @@ public class ABSHelper {
     );
   }
 
-  static {
-    final var r = 2.0;
-    final int range = 7;
-
-    final var funAngle = 360.0 / (range - 1);
-    final var tempPos = new Vector3d[range];
-    for (int i = 0; i < range; i++) {
-      if (i == 0) {
-        tempPos[i] = new Vector3d(0, 0, 0);
-        continue;
-      }
-
-      final var finalAngle = funAngle * i;
-      final var v2d = ModMath.getIndexVetexs(r, finalAngle);
-      final var rotation = new Vector3d(v2d.x, v2d.y, 0);
-      tempPos[i] = rotation;
+  @Internal
+  public static Vec3 getOffsetPos(final int index, final double angle, final double progress,
+                                  final Vec3 origin) {
+    if (progress == 1.0) {
+      return getOffsetPos(index, angle, origin);
     }
 
-    shieldPositionOffset = tempPos;
+    final var finalAngle = 60 * index;
+    final var r = 0.5 * ModMath.lerpOut(progress);
+    final var v2d = ModMath.getIndexVetexs(r, finalAngle);
+    final var rotation = new Vector3d(v2d.x, v2d.y, 0);
+    final var vec3 = rotation
+        .add(0, 0, 2 + (index == 0 ? 0.5 : 0))
+        .rotateY(angle);
+
+    return new Vec3(
+      vec3.x + origin.x(),
+      vec3.y + origin.y(),
+      vec3.z + origin.z()
+    );
   }
+
 
   @Internal
   public static Vector2f getResult(final int index, float pitch) {
@@ -90,12 +92,32 @@ public class ABSHelper {
   }
 
   @Internal
-  public static double[] decodecToDoubleArray(final String json) {
+  public static double[] decodeArray(final String json) {
     return gson.fromJson(json, TypeToken.getParameterized(double[].class).getType());
   }
 
   @Internal
-  public static String encodecFromDoubleArray(final double[] array) {
+  public static String encodeArray(final double[] array) {
     return gson.toJson(array);
+  }
+
+  static {
+    final var r = 2.0;
+    final int range = 7;
+
+    final var tempPos = new Vector3d[range];
+    for (int i = 0; i < range; i++) {
+      if (i == 0) {
+        tempPos[i] = new Vector3d(0, 0, 0);
+        continue;
+      }
+
+      final var finalAngle = 60 * i;
+      final var v2d = ModMath.getIndexVetexs(r, finalAngle);
+      final var rotation = new Vector3d(v2d.x, v2d.y, 0);
+      tempPos[i] = rotation;
+    }
+
+    shieldPositionOffset = tempPos;
   }
 }

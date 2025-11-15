@@ -28,13 +28,13 @@ public final class ModDateAttachmentTypes extends DateAttachmentTypeRegisterUtil
       .copyOnDeath());
 
   /**
-   * @see xiaojin.astralflux.util.ABSHelper#encodecFromDoubleArray
-   * @see xiaojin.astralflux.util.ABSHelper#decodecToDoubleArray
+   * @see xiaojin.astralflux.util.ABSHelper#encodeArray
+   * @see xiaojin.astralflux.util.ABSHelper#decodeArray
    */
   public static final DeferredHolder<AttachmentType<?>, AttachmentType<String>>
     AEGUS_BARRIER_SHIELD = register(
       "aegus_barrier_shield_processor", AttachmentType
-      .builder(() -> "[]")
+      .builder(() -> "")
       .serialize(Codec.STRING)
       .sync(ByteBufCodecs.STRING_UTF8));
 }

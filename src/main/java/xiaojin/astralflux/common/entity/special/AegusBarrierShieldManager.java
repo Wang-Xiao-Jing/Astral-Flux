@@ -8,7 +8,7 @@ import xiaojin.astralflux.util.ABSHelper;
 
 public final class AegusBarrierShieldManager extends AbstractAegusBarrierShieldManager {
   private final AegusBarrierShieldEntity[] shieldList = new AegusBarrierShieldEntity[7];
-  private final double[] shieldExpandingProcessor = new double[7];
+  private final double[] shieldExpandingProgress = new double[7];
   private boolean expanding = true;
 
   public AegusBarrierShieldManager(Level level) {
@@ -22,8 +22,8 @@ public final class AegusBarrierShieldManager extends AbstractAegusBarrierShieldM
   }
 
   @Override
-  public double[] getShieldExpandingProcessor() {
-    return this.shieldExpandingProcessor;
+  public double[] getExpandingProgress() {
+    return this.shieldExpandingProgress;
   }
 
   @Override
@@ -36,18 +36,23 @@ public final class AegusBarrierShieldManager extends AbstractAegusBarrierShieldM
     return this.expanding || (this.expanding = super.isStillInExpanding());
   }
 
+  @Override
+  public void addShield(int index) {
+    super.addShield(index);
+    this.expanding = false;
+  }
+
   private void expandShield() {
-    for (int i = 0; i < this.shieldExpandingProcessor.length; i++) {
-      if (this.shieldList[i] != null && this.shieldExpandingProcessor[i] == -1.0) {
-        this.shieldExpandingProcessor[i] = 0.0;
+    for (int i = 0; i < this.shieldExpandingProgress.length; i++) {
+      if (this.shieldList[i] != null && this.shieldExpandingProgress[i] == -1.0) {
+        this.shieldExpandingProgress[i] = 0.0;
       }
 
-      if (this.shieldExpandingProcessor[i] != 1.0) {
+      if (this.shieldExpandingProgress[i] != 1.0) {
         continue;
       }
 
-      // Fixme - 换成文档要求的时间插值进度切片。
-      this.shieldExpandingProcessor[i] += 0.1;
+      this.shieldExpandingProgress[i] += 0.1;
 
       break;
     }
@@ -58,7 +63,6 @@ public final class AegusBarrierShieldManager extends AbstractAegusBarrierShieldM
    */
   private void tweakShield() {
     final Vec3 lookingVec = this.getLookAngle();
-
     final double angle = Math.atan2(lookingVec.x, lookingVec.z);
 
     for (int index = 0; index < this.shieldList.length; index++) {
@@ -74,10 +78,5 @@ public final class AegusBarrierShieldManager extends AbstractAegusBarrierShieldM
       final Vec3 offsetPos = ABSHelper.getOffsetPos(index, angle, this.position());
       shieldEntity.moveTo(offsetPos.x, offsetPos.y, offsetPos.z, result.y, result.x);
     }
-  }
-
-  private void removeShield(final int index) {
-    this.shieldList[index] = null;
-    this.shieldExpandingProcessor[index] = -1.0;
   }
 }

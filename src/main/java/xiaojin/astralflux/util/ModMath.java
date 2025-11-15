@@ -1,7 +1,6 @@
 package xiaojin.astralflux.util;
 
 import org.joml.Vector2d;
-import org.joml.Vector3d;
 
 public final class ModMath {
   public static Vector2d getIndexVetexs(final double r, final double angle) {
@@ -9,6 +8,14 @@ public final class ModMath {
     final double y = r * Math.sin(angle * Math.PI / 180);
 
     return new Vector2d(x, y);
+  }
+
+  public static double lerpIn(final double delta) {
+    return Math.pow(delta, 2) * (3 - 2 * delta);
+  }
+
+  public static double lerpOut(final double delta) {
+    return lerpIn(1.0 - delta);
   }
 
   public static double lerpInAndOut(double delta) {

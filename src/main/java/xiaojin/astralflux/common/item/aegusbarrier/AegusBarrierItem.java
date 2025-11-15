@@ -12,8 +12,10 @@ import xiaojin.astralflux.api.ItemLeftClickEmpty;
 import xiaojin.astralflux.api.sourcesoul.IModifySourceSouItem;
 import xiaojin.astralflux.common.entity.special.AegusBarrierShieldManager;
 import xiaojin.astralflux.init.ModDataComponentTypes;
-import xiaojin.astralflux.init.ModDateAttachmentTypes;
+import xiaojin.astralflux.mixin.api.IModPlayer;
 import xiaojin.astralflux.util.SourceSoulUtil;
+
+import java.util.Objects;
 
 public class AegusBarrierItem extends Item implements IModifySourceSouItem, ItemLeftClickEmpty {
 
@@ -30,32 +32,37 @@ public class AegusBarrierItem extends Item implements IModifySourceSouItem, Item
   public InteractionResultHolder<ItemStack> use(final Level level, final Player player, final InteractionHand usedHand) {
     var itemInHand = player.getItemInHand(usedHand);
     var modifyValue = getModifyValue(itemInHand, player);
-    var canBeModified = SourceSoulUtil.getValue(player) >= modifyValue;
 
-    if (!canBeModified) {
+    if (SourceSoulUtil.getValue(player) < modifyValue
+      || !SourceSoulUtil.isModifyAllowed(player, modifyValue)) {
       return InteractionResultHolder.fail(itemInHand);
     }
 
-    // Fixme
+    final var modPlayer = IModPlayer.of(player);
+    if (Objects.nonNull(modPlayer.astralFlux$getShieldManager())) {
+      final var manager = modPlayer.astralFlux$getShieldManager();
+      boolean isDirty = false;
+      for (int i = 0; i < manager.getShields().length; i++) {
+        if (manager.getShields()[i] != null) {
+          continue;
+        }
 
-    // 添加护盾
-    AegusBarrierShieldHandler handler = player.getExistingDataOrNull(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD);
-    AegusBarrierShieldManager manager;
-    if (handler == null) {
-      handler = AegusBarrierShieldHandler.create(player);
-      manager = handler.getManager();
-    } else if ((manager = handler.getManager()).getExpandsCount() >= 7) {
-      // 添加失败 因为已经达到最大数量
-      return InteractionResultHolder.fail(itemInHand);
+        isDirty = true;
+        manager.addShield(i);
+      }
+
+      if (isDirty) {
+        SourceSoulUtil.modify(player, modifyValue);
+      }
+
+      return InteractionResultHolder.success(itemInHand);
     }
 
-    if (!SourceSoulUtil.isModifyAllowed(player, modifyValue)) {
-      return InteractionResultHolder.fail(itemInHand);
-    }
+    final var manager = new AegusBarrierShieldManager(level);
+    manager.moveTo(player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot());
+    level.addFreshEntity(manager);
+    modPlayer.astralFlux$setShieldManager(manager);
 
-    // 添加未完全成型的护盾
-    manager.addShield();
-    player.startUsingItem(usedHand);
     SourceSoulUtil.modify(player, modifyValue);
     return InteractionResultHolder.consume(itemInHand);
   }
@@ -65,10 +72,12 @@ public class AegusBarrierItem extends Item implements IModifySourceSouItem, Item
     if (!(livingEntity instanceof Player player) || level.isClientSide()) {
       return;
     }
+
     var value = SourceSoulUtil.getValue(player);
     if (value > 0) {
       return;
     }
+
     enterCD(stack, player);
   }
 
@@ -77,6 +86,7 @@ public class AegusBarrierItem extends Item implements IModifySourceSouItem, Item
     if (!(livingEntity instanceof Player player) || level.isClientSide()) {
       return;
     }
+
     enterCD(stack, player);
   }
 
@@ -99,10 +109,7 @@ public class AegusBarrierItem extends Item implements IModifySourceSouItem, Item
 
   @Override
   public void leftClick(final ItemStack stack, final Player player) {
-    var barrierShields = player.getExistingDataOrNull(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD);
-    if (barrierShields == null) {
-      return;
-    }
-    barrierShields.remove(player);
+    final var modPlayer = IModPlayer.of(player);
+    modPlayer.astralFlux$setShieldManager(null);
   }
 }

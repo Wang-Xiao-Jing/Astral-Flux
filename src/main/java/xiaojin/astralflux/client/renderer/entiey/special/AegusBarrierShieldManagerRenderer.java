@@ -14,10 +14,15 @@ public class AegusBarrierShieldManagerRenderer extends EntityRenderer<AegusBarri
 
   @Override
   public ResourceLocation getTextureLocation(final AegusBarrierShieldManager entity) {
-    return null;
+    return ResourceLocation.fromNamespaceAndPath("", "");
   }
 
   @Override
-  public void render(final AegusBarrierShieldManager p_entity, final float entityYaw, final float partialTick, final PoseStack poseStack, final MultiBufferSource bufferSource, final int packedLight) {
+  public void render(final AegusBarrierShieldManager p_entity,
+                     final float entityYaw,
+                     final float partialTick,
+                     final PoseStack poseStack,
+                     final MultiBufferSource bufferSource,
+                     final int packedLight) {
   }
 }

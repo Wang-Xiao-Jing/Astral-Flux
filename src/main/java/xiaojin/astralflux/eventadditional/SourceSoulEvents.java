@@ -43,6 +43,8 @@ public final class SourceSoulEvents {
     if (!event.isWasDeath()) {
       return;
     }
+
+    // Fixme 那设置 copyOnDeath 干什么（？
     player.setData(ModDateAttachmentTypes.SOURCE_SOUL.value(), 0d);
     player.setData(ModDateAttachmentTypes.SOURCE_SOUL_PAUSE_RECOVERY_TICK.value(), 0);
   }
