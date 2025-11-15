@@ -13,7 +13,7 @@ import javax.annotation.Nonnull;
  * 埃癸斯壁垒盾牌渲染
  */
 public class AegusBarrierShieldEntityRenderer extends EntityRenderer<AegusBarrierShieldEntity> {
-  protected AegusBarrierShieldEntityRenderer(Context context) {
+  public AegusBarrierShieldEntityRenderer(Context context) {
     super(context);
   }
 

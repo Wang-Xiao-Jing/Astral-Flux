@@ -1,4 +1,4 @@
-package xiaojin.astralflux.mixin.api;
+package xiaojin.astralflux.api.mixin;
 
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.ApiStatus.Internal;

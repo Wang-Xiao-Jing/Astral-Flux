@@ -1,22 +1,31 @@
 package xiaojin.astralflux.common.entity.special;
 
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector2f;
 import xiaojin.astralflux.api.abs.AbstractAegusBarrierShieldManager;
 import xiaojin.astralflux.util.ABSHelper;
 
+import java.util.Arrays;
+
 public final class AegusBarrierShieldManager extends AbstractAegusBarrierShieldManager {
   private final AegusBarrierShieldEntity[] shieldList = new AegusBarrierShieldEntity[7];
   private final double[] shieldExpandingProgress = new double[7];
   private boolean expanding = true;
 
+  public  AegusBarrierShieldManager(EntityType<AegusBarrierShieldManager> entityType, Level world) {
+    super(entityType, world);
+  }
+
   public AegusBarrierShieldManager(Level level) {
     super(level);
+    Arrays.fill(this.getShields(), new AegusBarrierShieldEntity(level, this));
+    Arrays.fill(this.getExpandingProgress(), 0.0);
   }
 
   @Override
-  protected void managerTick() {
+  public void update() {
     this.expandShield();
     this.tweakShield();
   }
@@ -48,7 +57,8 @@ public final class AegusBarrierShieldManager extends AbstractAegusBarrierShieldM
         this.shieldExpandingProgress[i] = 0.0;
       }
 
-      if (this.shieldExpandingProgress[i] != 1.0) {
+      if (this.shieldExpandingProgress[i] >= 1.0) {
+        this.shieldExpandingProgress[i] = 1.0;
         continue;
       }
 

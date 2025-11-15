@@ -12,7 +12,7 @@ import xiaojin.astralflux.api.ItemLeftClickEmpty;
 import xiaojin.astralflux.api.sourcesoul.IModifySourceSouItem;
 import xiaojin.astralflux.common.entity.special.AegusBarrierShieldManager;
 import xiaojin.astralflux.init.ModDataComponentTypes;
-import xiaojin.astralflux.mixin.api.IModPlayer;
+import xiaojin.astralflux.api.mixin.IModPlayer;
 import xiaojin.astralflux.util.SourceSoulUtil;
 
 import java.util.Objects;

@@ -20,7 +20,7 @@ import xiaojin.astralflux.eventadditional.SourceSoulEvents;
 import xiaojin.astralflux.events.PlayerLeftClickEmptyEvent;
 import xiaojin.astralflux.events.sourcesoul.SourceSoulModifyEvent;
 import xiaojin.astralflux.init.ModDateAttachmentTypes;
-import xiaojin.astralflux.mixin.api.IModPlayer;
+import xiaojin.astralflux.api.mixin.IModPlayer;
 import xiaojin.astralflux.util.ABSHelper;
 import xiaojin.astralflux.util.DirtHelper;
 
@@ -140,6 +140,7 @@ public final class PlayerEvents {
     }
 
     manager.moveTo(player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot());
+    manager.update();
 
     final var data = player.getExistingData(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD);
     final String dataNew = ABSHelper.encodeArray(manager.getExpandingProgress());

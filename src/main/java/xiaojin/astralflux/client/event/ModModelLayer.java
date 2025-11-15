@@ -22,11 +22,11 @@ public final class ModModelLayer {
 
   @SubscribeEvent
   public static void registerLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
-    AstralFlux.LOGGER.info("Registering Layer Definitions");
+/*    AstralFlux.LOGGER.info("Registering Layer Definitions");
 
     event.registerLayerDefinition(ModModelLayer.AEGUS_BARRIER_SHIELD, AegusBarrierShieldEntityRenderer::createBodyLayer);
 
-    AstralFlux.LOGGER.info("Registering Layer Definitions Completed");
+    AstralFlux.LOGGER.info("Registering Layer Definitions Completed");*/
   }
 
   private static ModelLayerLocation register(String path) {

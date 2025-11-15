@@ -7,12 +7,17 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 import org.joml.Vector2f;
 import org.joml.Vector3d;
 
+import java.lang.reflect.Type;
+import java.util.List;
+
 /**
  * "Aegus Barrier Shield Helper".
  */
 public class ABSHelper {
   private static final Gson gson = new Gson();
   private static final Vector3d[] shieldPositionOffset;
+
+  private static final Type doubleType = new TypeToken<List<Double>>() {}.getType();
 
   /**
    * 获取盾牌的偏移值，已经过旋转处理。
@@ -93,7 +98,14 @@ public class ABSHelper {
 
   @Internal
   public static double[] decodeArray(final String json) {
-    return gson.fromJson(json, TypeToken.getParameterized(double[].class).getType());
+    List<Double> list = gson.fromJson(json, doubleType);
+
+    double[] arr = new double[7];
+    for (int i = 0; i < 7; i++) {
+      arr[i] = i >= list.size() ? -1 : list.get(i);
+    }
+
+    return arr;
   }
 
   @Internal

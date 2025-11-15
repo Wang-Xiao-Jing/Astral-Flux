@@ -4,7 +4,7 @@ import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import xiaojin.astralflux.api.abs.AbstractAegusBarrierShieldManager;
-import xiaojin.astralflux.mixin.api.IModPlayer;
+import xiaojin.astralflux.api.mixin.IModPlayer;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;

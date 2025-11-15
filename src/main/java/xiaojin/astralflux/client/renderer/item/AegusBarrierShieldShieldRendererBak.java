@@ -29,21 +29,22 @@ import xiaojin.astralflux.init.ModDateAttachmentTypes;
 import xiaojin.astralflux.util.ABSHelper;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 埃癸斯壁垒盾牌渲染
  */
-public class AegusBarrierShieldShieldRenderer implements ModRender {
+public class AegusBarrierShieldShieldRendererBak implements ModRender {
   private static final ItemStack EMPTY_ITEM_STACK = ItemStack.EMPTY;
   public static final ResourceLocation MODDED_RL = AstralFlux.modRL("entity/aegus_barrier_shield");
   public static final ModelResourceLocation MODEL_RESOURCE_LOCATION =
     ModelResourceLocation.standalone(MODDED_RL);
   private static final ItemColors ITEM_COLORS_COLOR = ItemColors.createDefault(BlockColors.createDefault());
-  private BakedModel bakedModel = Minecraft.getInstance().getModelManager().getModel(MODEL_RESOURCE_LOCATION);
+  private BakedModel bakedModel;
 
-  public static final AegusBarrierShieldShieldRenderer INSTANCE = new AegusBarrierShieldShieldRenderer();
+  public static final AegusBarrierShieldShieldRendererBak INSTANCE = new AegusBarrierShieldShieldRendererBak();
 
-  private AegusBarrierShieldShieldRenderer() {}
+  private AegusBarrierShieldShieldRendererBak() {}
 
   @Override
   public void levelRender(final Minecraft minecraft,
@@ -52,6 +53,11 @@ public class AegusBarrierShieldShieldRenderer implements ModRender {
                           final PoseStack poseStack,
                           final Camera camera,
                           final DeltaTracker partialTick) {
+    if (Objects.isNull(this.bakedModel)) {
+      bakedModel = Minecraft.getInstance().getModelManager().getModel(MODEL_RESOURCE_LOCATION);
+    }
+
+
     for (AbstractClientPlayer clientPlayer : level.players()) {
       if (minecraft.player != clientPlayer && !minecraft.player
         .shouldRender(clientPlayer.getX(), clientPlayer.getY(), clientPlayer.getZ())) {
@@ -69,7 +75,7 @@ public class AegusBarrierShieldShieldRenderer implements ModRender {
     final double angleX = Math.atan(-lookingVec.y);
 
     final var data = player.getExistingData(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD);
-    if (data.isEmpty()) {
+    if (data.isEmpty() || data.get().isEmpty()) {
       return;
     }
 
@@ -85,7 +91,7 @@ public class AegusBarrierShieldShieldRenderer implements ModRender {
 
       final var p = arr[i];
       final var offsetPos = ABSHelper.getOffsetPos(i, angleX, p, pos);
-      poseStack.translate(offsetPos.x, offsetPos.y, offsetPos.z);
+      poseStack.translate(-offsetPos.x, -offsetPos.y, -offsetPos.z);
       this.renderModel(poseStack);
       poseStack.popPose();
     }
@@ -123,13 +129,13 @@ public class AegusBarrierShieldShieldRenderer implements ModRender {
   }
 
   private void renderQuadList(PoseStack poseStack, VertexConsumer buffer, List<BakedQuad> quads) {
-    boolean flag = !AegusBarrierShieldShieldRenderer.EMPTY_ITEM_STACK.isEmpty();
+    boolean flag = !AegusBarrierShieldShieldRendererBak.EMPTY_ITEM_STACK.isEmpty();
     var posestack$pose = poseStack.last();
 
     for (var bakedquad : quads) {
       int i = -1;
       if (flag && bakedquad.isTinted()) {
-        i = ITEM_COLORS_COLOR.getColor(AegusBarrierShieldShieldRenderer.EMPTY_ITEM_STACK, bakedquad.getTintIndex());
+        i = ITEM_COLORS_COLOR.getColor(AegusBarrierShieldShieldRendererBak.EMPTY_ITEM_STACK, bakedquad.getTintIndex());
       }
 
       float f = (float) FastColor.ARGB32.alpha(i) / 255.0F;
