@@ -46,6 +46,10 @@ public class AegusBarrierShieldShieldRenderer implements ModRender {
 
   private AegusBarrierShieldShieldRenderer() {}
 
+  public void init() {
+    this.bakedModel = Minecraft.getInstance().getModelManager().getModel(MODEL_RESOURCE_LOCATION);
+  }
+
   @Override
   public void levelRender(final Minecraft minecraft,
                           final ClientLevel level,
@@ -53,11 +57,6 @@ public class AegusBarrierShieldShieldRenderer implements ModRender {
                           final PoseStack poseStack,
                           final Camera camera,
                           final DeltaTracker partialTick) {
-    if (Objects.isNull(this.bakedModel)) {
-      bakedModel = Minecraft.getInstance().getModelManager().getModel(MODEL_RESOURCE_LOCATION);
-    }
-
-
     for (AbstractClientPlayer clientPlayer : level.players()) {
       if (minecraft.player != clientPlayer && !minecraft.player
         .shouldRender(clientPlayer.getX(), clientPlayer.getY(), clientPlayer.getZ())) {

@@ -24,6 +24,7 @@ public final class AstralFluxClient {
 
  @SubscribeEvent
  public static void registerGeometryLoaders(ModelEvent.BakingCompleted event) {
+    AegusBarrierShieldShieldRenderer.INSTANCE.init();
  }
 
   @SubscribeEvent
