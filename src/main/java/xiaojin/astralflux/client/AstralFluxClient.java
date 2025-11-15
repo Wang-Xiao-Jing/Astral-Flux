@@ -9,6 +9,7 @@ import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import xiaojin.astralflux.client.renderer.entiey.special.AegusBarrierShieldEntityRenderer;
+import xiaojin.astralflux.client.renderer.item.AegusBarrierShieldShieldRenderer;
 import xiaojin.astralflux.core.AstralFlux;
 import xiaojin.astralflux.core.AstralFluxKey;
 
@@ -22,9 +23,10 @@ public final class AstralFluxClient {
     AstralFlux.LOGGER.info("HELLO FROM CLIENT SETUP");
   }
 
-//  @SubscribeEvent
-//  public static void registerGeometryLoaders(ModelEvent.BakingCompleted event) {
-//  }
+   @SubscribeEvent
+   public static void registerGeometryLoaders(ModelEvent.BakingCompleted event) {
+     AegusBarrierShieldShieldRenderer.INSTANCE.init();
+   }
 
   @SubscribeEvent
   public static void RegisterAdditional(ModelEvent.RegisterAdditional event) {

@@ -60,7 +60,7 @@ public class AegusBarrierShieldEntityRenderer extends EntityRenderer<AegusBarrie
                      final float partialTick,
                      final PoseStack poseStack,
                      final MultiBufferSource bufferSource, final int packedLight) {
-    super.render(pEntity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
+/*    super.render(pEntity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
     poseStack.pushPose();
 
     final Vec3 lookingVec = pEntity.getLookAngle();
@@ -71,7 +71,7 @@ public class AegusBarrierShieldEntityRenderer extends EntityRenderer<AegusBarrie
     poseStack.scale(1.5f, 1.5f, 1);
     poseStack.translate(-0.5f, -0.5f, -0.5f);
     renderModel(poseStack, bufferSource, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
-    poseStack.popPose();
+    poseStack.popPose();*/
   }
 
   private void renderModel(final PoseStack poseStack, final MultiBufferSource bufferSource, final int combinedLight, final int combinedOverlay) {

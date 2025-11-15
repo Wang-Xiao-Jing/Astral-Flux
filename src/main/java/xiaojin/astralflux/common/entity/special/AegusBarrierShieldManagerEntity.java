@@ -19,6 +19,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.loading.FMLLoader;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2f;
@@ -139,7 +140,7 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
       final var shieldEntity = entry.getValue();
 
       var offsetPos = getOffsetPos(index, angle, this.position());
-      var result = getResult(index);
+      var result = getResult(index).add(new Vector2f(0, this.getYRot()));
 
       shieldEntity.moveTo(offsetPos.x, offsetPos.y, offsetPos.z, result.y, result.x);
     });
@@ -180,33 +181,34 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     return Map.copyOf(this.shieldList);
   }
 
+  @Internal
   @Nonnull
-  private Vector2f getResult(final int index) {
+  public Vector2f getResult(final int index) {
     float entityXRot = 0;
-    float entityYRot = this.getYRot() ;
+    float entityYRot = 0;
 
     switch(index) {
       case 1 -> {
         entityXRot = -30;
-        entityYRot = entityYRot - 30;
+        entityYRot = -30;
       }
       case 2 -> {
         entityXRot = -30;
-        entityYRot = entityYRot + 30;
+        entityYRot = 30;
       }
       case 3 -> {
-        entityYRot = entityYRot + 30;
+        entityYRot = 30;
       }
       case 4 -> {
         entityXRot = 30;
-        entityYRot = entityYRot + 30;
+        entityYRot = 30;
       }
       case 5 -> {
         entityXRot = 30;
-        entityYRot = entityYRot - 30;
+        entityYRot = -30;
       }
       case 6 -> {
-        entityYRot = entityYRot - 30;
+        entityYRot = -30;
       }
     }
 
