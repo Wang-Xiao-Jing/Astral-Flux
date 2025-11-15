@@ -20,6 +20,7 @@ import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
@@ -29,7 +30,6 @@ import xiaojin.astralflux.init.ModDateAttachmentTypes;
 import xiaojin.astralflux.util.ABSHelper;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * 埃癸斯壁垒盾牌渲染
@@ -57,22 +57,21 @@ public class AegusBarrierShieldShieldRenderer implements ModRender {
                           final PoseStack poseStack,
                           final Camera camera,
                           final DeltaTracker partialTick) {
-    for (AbstractClientPlayer clientPlayer : level.players()) {
+    final var cameraPos = camera.getPosition();
+/*    for (AbstractClientPlayer clientPlayer : level.players()) {
       if (minecraft.player != clientPlayer && !minecraft.player
         .shouldRender(clientPlayer.getX(), clientPlayer.getY(), clientPlayer.getZ())) {
         continue;
       }
 
-      this.startRender(poseStack, clientPlayer);
-    }
+      this.startRender(poseStack, clientPlayer, cameraPos);
+    }*/
+    this.startRender(poseStack, minecraft.player, cameraPos,
+      partialTick.getGameTimeDeltaPartialTick(true));
   }
 
-  private void startRender(final PoseStack poseStack, final AbstractClientPlayer player) {
-    final var pos = player.getEyePosition();
-    final Vec3 lookingVec = player.getLookAngle();
-    final double angleY = Math.atan2(lookingVec.x, lookingVec.z);
-    final double angleX = Math.atan(-lookingVec.y);
-
+  private void startRender(final PoseStack poseStack, final AbstractClientPlayer player,
+                           final Vec3 cameraPos, final float ticks) {
     final var data = player.getExistingData(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD);
     if (data.isEmpty() || data.get().isEmpty()) {
       return;
@@ -80,18 +79,37 @@ public class AegusBarrierShieldShieldRenderer implements ModRender {
 
     final double[] arr = ABSHelper.decodeArray(data.get());
 
+
+    // 将偏航角和俯仰角转换为方向向量
+    var yaw = player.getViewYRot(ticks) * Mth.DEG_TO_RAD;
+    var pitch = player.getViewXRot(ticks) * Mth.DEG_TO_RAD;
+
+    // 计算方向向量
+    var dirX = -Math.sin(yaw) * Math.cos(pitch);
+    var dirY = -Math.sin(pitch);
+    var dirZ = Math.cos(yaw) * Math.cos(pitch);
+    var direction = new Vec3(dirX, dirY, dirZ).normalize();
+    var eyePosition = player.getEyePosition(ticks);
+    var pos = eyePosition.add(direction.scale(1.5f));
+
+    final Vec3 lookingVec = player.getLookAngle();
+    final double angleY = Math.atan2(lookingVec.x, lookingVec.z);
+    final double angleX = Math.atan(-lookingVec.y);
+
     poseStack.pushPose();
+    poseStack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
+    poseStack.translate(pos.x, pos.y, pos.z);
     poseStack.mulPose(Axis.YP.rotation((float) angleY));
-    poseStack.mulPose(Axis.XP.rotation((float) angleX));
-    poseStack.scale(1.5f, 1.5f, 1);
+    // poseStack.mulPose(Axis.XP.rotation(pitch));
 
-    for (int i = 0; i < 7; i++) {
+    for (int number = 0; number < 7; number++) {
       poseStack.pushPose();
-
-      final var p = arr[i];
-      final var offsetPos = ABSHelper.getOffsetPos(i, angleX, p, pos);
-      poseStack.translate(-offsetPos.x, -offsetPos.y, -offsetPos.z);
-      this.renderModel(poseStack);
+      final var rot = ABSHelper.getRot(number, pitch);
+      poseStack.mulPose(Axis.YP.rotationDegrees(-rot.y));
+      poseStack.mulPose(Axis.XP.rotationDegrees(rot.x));
+      var indexVetex = ABSHelper.getOffsetPos(number, 0, new Vec3(0, 0, 0));
+      poseStack.translate(indexVetex.x(), indexVetex.y(), indexVetex.z());
+      renderModel(poseStack);
       poseStack.popPose();
     }
 

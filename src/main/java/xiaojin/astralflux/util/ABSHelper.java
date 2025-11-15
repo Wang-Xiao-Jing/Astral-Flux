@@ -49,7 +49,7 @@ public class ABSHelper {
     }
 
     final var finalAngle = 60 * index;
-    final var r = 0.5 * ModMath.lerpOut(progress);
+    final var r = (1.5 / 4) * ModMath.lerpOut(progress);
     final var v2d = ModMath.getIndexVetexs(r, finalAngle);
     final var rotation = new Vector3d(v2d.x, v2d.y, 0);
     final var vec3 = rotation
@@ -65,7 +65,7 @@ public class ABSHelper {
 
 
   @Internal
-  public static Vector2f getResult(final int index, float pitch) {
+  public static Vector2f getRot(final int index, float pitch) {
     float yaw = 0;
 
     switch(index) {
@@ -114,7 +114,7 @@ public class ABSHelper {
   }
 
   static {
-    final var r = 2.0;
+    final var r = 1.5;
     final int range = 7;
 
     final var tempPos = new Vector3d[range];

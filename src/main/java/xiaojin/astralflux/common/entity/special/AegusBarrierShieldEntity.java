@@ -24,7 +24,7 @@ public class AegusBarrierShieldEntity extends Entity {
   public AegusBarrierShieldEntity(final Level level, AbstractAegusBarrierShieldManager manager) {
     super(ModEntityTypes.AEGUS_BARRIER_SHIELD_ENTITY.get(), level);
     this.manager = manager;
-    this.setBoundingBox(new ABSBoundingBox(this));
+    // this.setBoundingBox(new ABSBoundingBox(this));
   }
 
   @Override

@@ -84,7 +84,7 @@ public final class AegusBarrierShieldManager extends AbstractAegusBarrierShieldM
       }
 
       shieldEntity.setOldPosAndRot();
-      final Vector2f result = ABSHelper.getResult(index, this.getYRot());
+      final Vector2f result = ABSHelper.getRot(index, this.getYRot());
       final Vec3 offsetPos = ABSHelper.getOffsetPos(index, angle, this.position());
       shieldEntity.moveTo(offsetPos.x, offsetPos.y, offsetPos.z, result.y, result.x);
     }
