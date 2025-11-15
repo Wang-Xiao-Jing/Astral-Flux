@@ -25,10 +25,8 @@ import net.minecraft.util.FastColor;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
-import org.lwjgl.opengl.GL11;
 import xiaojin.astralflux.common.entity.special.AegusBarrierShieldEntity;
 import xiaojin.astralflux.core.AstralFlux;
-import xiaojin.astralflux.util.ModUtil;
 
 import java.util.List;
 

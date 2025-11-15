@@ -10,7 +10,7 @@ import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
 import xiaojin.astralflux.api.ItemLeftClickEmpty;
 import xiaojin.astralflux.api.sourcesoul.IModifySourceSouItem;
-import xiaojin.astralflux.common.entity.special.AegusBarrierShieldManagerEntity;
+import xiaojin.astralflux.common.entity.special.AegusBarrierShieldManager;
 import xiaojin.astralflux.init.ModDataComponentTypes;
 import xiaojin.astralflux.init.ModDateAttachmentTypes;
 import xiaojin.astralflux.util.SourceSoulUtil;
@@ -36,9 +36,11 @@ public class AegusBarrierItem extends Item implements IModifySourceSouItem, Item
       return InteractionResultHolder.fail(itemInHand);
     }
 
+    // Fixme
+
     // 添加护盾
     AegusBarrierShieldHandler handler = player.getExistingDataOrNull(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD);
-    AegusBarrierShieldManagerEntity manager;
+    AegusBarrierShieldManager manager;
     if (handler == null) {
       handler = AegusBarrierShieldHandler.create(player);
       manager = handler.getManager();

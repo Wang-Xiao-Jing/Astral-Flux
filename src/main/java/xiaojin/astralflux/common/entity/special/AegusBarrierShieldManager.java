@@ -1,0 +1,83 @@
+package xiaojin.astralflux.common.entity.special;
+
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
+import org.joml.Vector2f;
+import xiaojin.astralflux.api.abs.AbstractAegusBarrierShieldManager;
+import xiaojin.astralflux.util.ABSHelper;
+
+public final class AegusBarrierShieldManager extends AbstractAegusBarrierShieldManager {
+  private final AegusBarrierShieldEntity[] shieldList = new AegusBarrierShieldEntity[7];
+  private final double[] shieldExpandingProcessor = new double[7];
+  private boolean expanding = true;
+
+  public AegusBarrierShieldManager(Level level) {
+    super(level);
+  }
+
+  @Override
+  protected void managerTick() {
+    this.expandShield();
+    this.tweakShield();
+  }
+
+  @Override
+  public double[] getShieldExpandingProcessor() {
+    return this.shieldExpandingProcessor;
+  }
+
+  @Override
+  public AegusBarrierShieldEntity[] getShields() {
+    return this.shieldList;
+  }
+
+  @Override
+  public boolean isStillInExpanding() {
+    return this.expanding || (this.expanding = super.isStillInExpanding());
+  }
+
+  private void expandShield() {
+    for (int i = 0; i < this.shieldExpandingProcessor.length; i++) {
+      if (this.shieldList[i] != null && this.shieldExpandingProcessor[i] == -1.0) {
+        this.shieldExpandingProcessor[i] = 0.0;
+      }
+
+      if (this.shieldExpandingProcessor[i] != 1.0) {
+        continue;
+      }
+
+      // Fixme - 换成文档要求的时间插值进度切片。
+      this.shieldExpandingProcessor[i] += 0.1;
+
+      break;
+    }
+  }
+
+  /**
+   * 修改盾牌实体状态。
+   */
+  private void tweakShield() {
+    final Vec3 lookingVec = this.getLookAngle();
+
+    final double angle = Math.atan2(lookingVec.x, lookingVec.z);
+
+    for (int index = 0; index < this.shieldList.length; index++) {
+      final var shieldEntity = this.shieldList[index];
+
+      if (shieldEntity.shouldRemove()) {
+        this.removeShield(index);
+        continue;
+      }
+
+      shieldEntity.setOldPosAndRot();
+      final Vector2f result = ABSHelper.getResult(index, this.getYRot());
+      final Vec3 offsetPos = ABSHelper.getOffsetPos(index, angle, this.position());
+      shieldEntity.moveTo(offsetPos.x, offsetPos.y, offsetPos.z, result.y, result.x);
+    }
+  }
+
+  private void removeShield(final int index) {
+    this.shieldList[index] = null;
+    this.shieldExpandingProcessor[index] = -1.0;
+  }
+}

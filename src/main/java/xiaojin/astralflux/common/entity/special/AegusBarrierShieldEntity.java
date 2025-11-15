@@ -13,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animation.AnimatableManager;
+import xiaojin.astralflux.api.abs.AbstractAegusBarrierShieldManager;
 import xiaojin.astralflux.init.ModEntityTypes;
 
 import java.util.Optional;
@@ -25,9 +26,6 @@ public class AegusBarrierShieldEntity extends Entity implements GeoEntity, Trace
   public static final EntityDataAccessor<Boolean> IS_INTACT_ACCESSOR =
     SynchedEntityData.defineId(AegusBarrierShieldEntity.class, EntityDataSerializers.BOOLEAN);
 
-
-
-  private int tick;
   /**
    * 是否移除
    */
@@ -37,13 +35,13 @@ public class AegusBarrierShieldEntity extends Entity implements GeoEntity, Trace
   @Nullable
   private Entity cachedOwner;
 
-  private AegusBarrierShieldManagerEntity manager;
+  private AbstractAegusBarrierShieldManager manager;
 
   public AegusBarrierShieldEntity(final EntityType<?> entityType, final Level level) {
     super(entityType, level);
   }
 
-  public AegusBarrierShieldEntity(final Level level, AegusBarrierShieldManagerEntity manager) {
+  public AegusBarrierShieldEntity(final Level level, AbstractAegusBarrierShieldManager manager) {
     super(ModEntityTypes.AEGUS_BARRIER_SHIELD_ENTITY.get(), level);
     this.manager = manager;
     setOwner(manager.getOwner());
@@ -138,11 +136,11 @@ public class AegusBarrierShieldEntity extends Entity implements GeoEntity, Trace
     return this.entityData.get(IS_INTACT_ACCESSOR);
   }
 
-  public AegusBarrierShieldManagerEntity getManager() {
+  public AegusBarrierShieldManager getManager() {
     return manager;
   }
 
-  public void setManager(final AegusBarrierShieldManagerEntity manager) {
+  public void setManager(final AegusBarrierShieldManager manager) {
     this.manager = manager;
   }
 

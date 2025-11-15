@@ -11,12 +11,19 @@ import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import xiaojin.astralflux.api.ItemLeftClickEmpty;
 import xiaojin.astralflux.client.gui.layers.SourceSoulBarLayerDraw;
+import xiaojin.astralflux.common.entity.special.AegusBarrierShieldManager;
 import xiaojin.astralflux.common.payloads.PlayerLeftClickEmptyPayload;
 import xiaojin.astralflux.eventadditional.SourceSoulEvents;
 import xiaojin.astralflux.events.PlayerLeftClickEmptyEvent;
 import xiaojin.astralflux.events.sourcesoul.SourceSoulModifyEvent;
+import xiaojin.astralflux.init.ModAttributes;
+import xiaojin.astralflux.mixin.api.IModPlayer;
+import xiaojin.astralflux.util.DirtHelper;
+
+import java.util.Objects;
 
 @EventBusSubscriber
 public final class PlayerEvents {
@@ -49,10 +56,9 @@ public final class PlayerEvents {
    */
   @SubscribeEvent
   public static void livingDamageEventPost(LivingDamageEvent.Post event) {
-    if (!(event.getEntity() instanceof Player player)) {
-      return;
+    if (event.getEntity() instanceof Player) {
+      SourceSoulEvents.onHit(event);
     }
-    SourceSoulEvents.onHit(event);
   }
 
   /**
@@ -76,7 +82,7 @@ public final class PlayerEvents {
    * 左键点击空（客户端）
    */
   @SubscribeEvent
-  public static void playerInteractEventLeftClickEmpty(PlayerInteractEvent.LeftClickEmpty event) {
+  public static void playerInteractEventLeftClickEmpty(final PlayerInteractEvent.LeftClickEmpty event) {
     playerLeftClickEmpty(event);
   }
 
@@ -84,16 +90,8 @@ public final class PlayerEvents {
    * 左键点击方块
    */
   @SubscribeEvent
-  public static void playerInteractEventLeftClickBlock(PlayerInteractEvent.LeftClickBlock event) {
+  public static void playerInteractEventLeftClickBlock(final PlayerInteractEvent.LeftClickBlock event) {
     playerLeftClickEmpty(event);
-  }
-
-  public static void playerLeftClickEmpty(PlayerInteractEvent event) {
-    if (event.getSide().isClient()) {
-      PayloadUtil.sendToServer(new PlayerLeftClickEmptyPayload(event.getHand()));
-      return;
-    }
-    PlayerLeftClickEmptyPayload.trigger(event.getEntity(), event.getHand());
   }
 
   /**
@@ -106,5 +104,35 @@ public final class PlayerEvents {
       return;
     }
     itemLeftClick.leftClick(itemStack, event.getEntity());
+  }
+
+  @SubscribeEvent
+  public static void playerTickEvent(PlayerTickEvent.Post event) {
+    final Player player = event.getEntity();
+    final var modPlayer = IModPlayer.of(player);
+    final var manager = modPlayer.astralFlux$getShieldManager();
+
+    if (player.level().isClientSide || Objects.isNull(manager)) {
+      return;
+    }
+
+    if (manager.allInExpired()) {
+      modPlayer.astralFlux$setShieldManager(null);
+      return;
+    }
+
+    manager.setOldPosAndRot();
+    manager.moveTo(player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot());
+  }
+
+  @Internal
+  private static void playerLeftClickEmpty(final PlayerInteractEvent event) {
+    DirtHelper.runDirt(event.getSide(),
+      () -> {
+        final var payload = new PlayerLeftClickEmptyPayload(event.getHand());
+        PayloadUtil.sendToServer(payload);
+      },
+      () -> PlayerLeftClickEmptyPayload.trigger(event.getEntity(), event.getHand())
+    );
   }
 }
