@@ -25,8 +25,6 @@ public class AegusBarrierShieldEntity extends Entity implements GeoEntity, Trace
   public static final EntityDataAccessor<Boolean> IS_INTACT_ACCESSOR =
     SynchedEntityData.defineId(AegusBarrierShieldEntity.class, EntityDataSerializers.BOOLEAN);
 
-
-
   private int tick;
   /**
    * 是否移除
@@ -86,12 +84,9 @@ public class AegusBarrierShieldEntity extends Entity implements GeoEntity, Trace
   }
 
   @Override
-  public void restoreFrom(Entity entity) {
-    super.restoreFrom(entity);
-    if (!(entity instanceof AegusBarrierShieldEntity entity1)) {
-      return;
-    }
-    this.cachedOwner = entity1.cachedOwner;
+  public void remove(final RemovalReason reason) {
+    super.remove(reason);
+    this.shouldRemove = true;
   }
 
   public void setOwner(@Nullable final Entity owner) {

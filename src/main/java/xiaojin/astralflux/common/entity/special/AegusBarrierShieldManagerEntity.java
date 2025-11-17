@@ -13,18 +13,15 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.Entity.RemovalReason;
-import net.minecraft.world.entity.animal.Cow;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.fml.loading.FMLLoader;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2f;
 import org.joml.Vector3d;
-import org.joml.Vector3f;
+import xiaojin.astralflux.common.item.aegusbarrier.AegusBarrierShieldHandler;
 import xiaojin.astralflux.init.ModDateAttachmentTypes;
 import xiaojin.astralflux.init.ModEntityDataSerializers;
 import xiaojin.astralflux.init.ModEntityTypes;
@@ -65,10 +62,10 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
 
   private final Map<Integer, AegusBarrierShieldEntity> shieldList = new Int2ObjectOpenHashMap<>(7);
 
-  @Nullable
   private UUID ownerUUID;
-  @Nullable
-  private Entity cachedOwner;
+  private Player cachedOwner;
+  private Vec3 playerPos;
+  private AegusBarrierShieldHandler shieldHandler;
   private float targetXRot;
   private float targetYRot;
 
@@ -76,18 +73,23 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     this(entityType, level, null);
   }
 
-  public AegusBarrierShieldManagerEntity(final Level level, @Nullable final Entity owner) {
+  public AegusBarrierShieldManagerEntity(final Level level, final Player owner) {
     this(ModEntityTypes.AEGUS_BARRIER_SHIELD_MANAGER_ENTITY.get(), level, owner);
   }
 
-  public AegusBarrierShieldManagerEntity(final EntityType<?> entityType, final Level level, @Nullable final Entity owner) {
+  public AegusBarrierShieldManagerEntity(final EntityType<?> entityType, final Level level, final Player owner) {
     super(entityType, level);
     setOwner(owner);
   }
 
+  public void setHandler(AegusBarrierShieldHandler handler) {
+    this.shieldHandler = handler;
+  }
+
   @Override
   public void tick() {
-    Entity owner = this.getOwner();
+    Vec3 oldPlayerPos = this.playerPos;
+    Player owner = this.getOwner();
     final boolean isClientSide = this.level().isClientSide();
 
     if (Objects.isNull(owner)) {
@@ -97,7 +99,6 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
       return;
     }
 
-
     // 检测是否需要增加或移除护盾
     if (increaseOrRemoval(isClientSide, owner)) {
       return;
@@ -105,21 +106,40 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
 
     super.tick();
 
+    if (this.shieldHandler != null) {
+      this.shieldHandler.setRotO(0, this.yRotO);
+    }
+
     final Vec3 position = owner.getEyePosition();
 
-    if (!this.position().equals(position) && shouldUpdateLerp(position, owner)) {
-      this.lerpTo(position.x, position.y, position.z, owner.getYRot(), owner.getXRot(), 5);
+    if (!position.equals(oldPlayerPos)) {
+      this.playerPos = position;
+      setPos(position.x, position.y - 0.5, position.z);
+      this.tweaksSubShields(owner);
     }
+
+    if (!this.position().equals(position) && shouldUpdateLerp(position, owner)) {
+      this.lerpTo(position.x, position.y - 0.5, position.z, owner.getYRot(), 0, 5);
+    }
+
+    this.shieldHandler.setRot(0, getYRot());
 
     if (this.lerpStep > 0) {
       this.lerpPositionAndRotationStep(
-        this.lerpStep--,
+        this.lerpStep,
         this.lerpPosX,
         this.lerpPosY,
         this.lerpPosZ,
         this.lerpYRot,
         this.lerpXRot
       );
+
+      if (this.shieldHandler != null) {
+        this.shieldHandler.lerpOldRotationStep(lerpStep, yRotO);
+        this.shieldHandler.lerpRotationStep(lerpStep, owner.getYRot());
+      }
+
+      this.lerpStep--;
     }
 
     this.tweaksSubShields(owner);
@@ -127,9 +147,13 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     if (this.isConsume()) {
       this.setConsumeTics(this.getConsumeTics() + 1);
     }
+
+    if (this.shieldHandler != null) {
+      this.shieldHandler.syncData(owner);
+    }
   }
 
-  private void tweaksSubShields(@Nonnull final Entity owner) {
+  private void tweaksSubShields(@Nonnull final Player owner) {
     final Vec3 lookingVec = this.getLookAngle();
 
     final double angle = Math.atan2(lookingVec.x, lookingVec.z);
@@ -143,6 +167,9 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
       var result = getResult(index).add(new Vector2f(0, this.getYRot()));
 
       shieldEntity.moveTo(offsetPos.x, offsetPos.y, offsetPos.z, result.y, result.x);
+      if (this.shieldHandler != null) {
+        this.shieldHandler.shieldData(index, shieldEntity.tickCount);
+      }
     });
 
     shieldSet.stream()
@@ -160,15 +187,11 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     this.lerpStep = steps;
   }
 
-  private boolean shouldUpdateLerp(Vec3 pos, Entity owner) {
-    return this.lerpPosX != pos.x
-      || this.lerpPosY != pos.y
-      || this.lerpPosZ != pos.z
-      || this.lerpYRot != owner.getYRot()
-      || this.lerpXRot != owner.getXRot();
+  private boolean shouldUpdateLerp(Vec3 pos, Player owner) {
+    return this.lerpPosX != pos.x || this.lerpPosY != pos.y || this.lerpPosZ != pos.z || this.lerpYRot != owner.getYRot();
   }
 
-  public void setOwner(@Nullable final Entity owner) {
+  public void setOwner(final Player owner) {
     this.cachedOwner = owner;
     this.ownerUUID = owner != null ? owner.getUUID() : null;
     if (this.ownerUUID != null) {
@@ -234,8 +257,12 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
 
 
   private void removeShieldEntity(final Entry<Integer, AegusBarrierShieldEntity> entry) {
-    this.removeShieldEntity(entry.getKey(), entry.getValue());
-    this.shieldList.remove(entry.getKey());
+    int index = entry.getKey();
+    this.removeShieldEntity(index, entry.getValue());
+    this.shieldList.remove(index);
+    if (this.shieldHandler != null) {
+      this.shieldHandler.removeShield(index);
+    }
   }
 
   private void removeShieldEntity(int index, final AegusBarrierShieldEntity shieldEntity) {
@@ -251,6 +278,9 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     data.get(SHIELD_LIST_ACCESSOR).put(index, Map.entry(shieldEntity.getId(), shieldEntity.getUUID()));
     data.set(SHIELD_LIST_ACCESSOR, data.get(SHIELD_LIST_ACCESSOR),true);
     this.shieldList.put(index, shieldEntity);
+    if (this.shieldHandler != null) {
+      this.shieldHandler.shieldData(index, shieldEntity.tickCount);
+    }
   }
 
   private boolean increaseOrRemoval(final boolean isClientSide, final Entity entity) {
@@ -273,7 +303,7 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
       }
     }
     // 添加盾牌
-    if (this.tickCount % (4) == 0) {
+    if (getExpandsCount() != 0 && this.tickCount % (4) == 0) {
       addShield();
       if (!this.isConsume()) {
         setConsume(true);
@@ -301,20 +331,23 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     addShieldEntity(count, newEntiey);
     level().addFreshEntity(newEntiey);
     this.setExpandsCount(count + 1);
+    if (shieldHandler != null) {
+      this.shieldHandler.setExpandsCount(getExpandsCount());
+    }
     return true;
   }
 
   @Override
   public void remove(final RemovalReason reason) {
-    super.remove(reason);
-    this.shieldList.values().forEach(e -> e.remove(RemovalReason.DISCARDED));
-
-    var entity = getOwner();
-    if (!(entity instanceof LivingEntity livingEntity)) {
+    if (isRemoved()) {
       return;
     }
-
-    livingEntity.removeData(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD);
+    super.remove(reason);
+    this.shieldList.values().forEach(e -> e.remove(RemovalReason.DISCARDED));
+    Player owner = getOwner();
+    if (shieldHandler != null && owner != null) {
+      this.shieldHandler.remove(owner);
+    }
   }
 
   @Override
@@ -341,20 +374,20 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
       var number = entry.getKey();
       var integerUUIDEntry = entry.getValue();
       var shieldEntity = this.level().getEntity(integerUUIDEntry.getKey());
-      assert shieldEntity instanceof AegusBarrierShieldEntity || shieldEntity.getUUID().equals(integerUUIDEntry.getValue()) : "Shield entity not found";
+      assert shieldEntity instanceof AegusBarrierShieldEntity && shieldEntity.getUUID().equals(integerUUIDEntry.getValue()) : "Shield entity not found";
       this.shieldList.put(number, (AegusBarrierShieldEntity) shieldEntity);
     }
   }
 
   @Nullable
   @Override
-  public Entity getOwner() {
+  public Player getOwner() {
     var level = this.level();
     if (level.isClientSide) {
       this.ownerUUID = getEntityData().get(OWNER_UUID_ACCESSOR).orElse(null);
       var ownerId = getEntityData().get(OWNER_ID_ACCESSOR);
       if (ownerId.isPresent()) {
-        this.cachedOwner = level.getEntity(ownerId.getAsInt());
+        this.cachedOwner = (Player) level.getEntity(ownerId.getAsInt());
       }
     }
 
@@ -363,7 +396,7 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     }
 
     if (this.ownerUUID != null && level instanceof ServerLevel serverlevel) {
-      this.cachedOwner = serverlevel.getEntity(this.ownerUUID);
+      this.cachedOwner = (Player) serverlevel.getEntity(this.ownerUUID);
       return this.cachedOwner;
     }
 

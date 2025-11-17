@@ -90,31 +90,6 @@ public class SourceSoulBarLayerDraw implements LayeredDraw.Layer {
       return;
     }
     this.player = this.minecraft.player;
-    var existingDataOrNull = player.getExistingDataOrNull(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD);
-/*
-    if (existingDataOrNull != null) {
-      int x = 1;
-      int y = 1;
-      for (var entityEntry : existingDataOrNull.getManager().getShieldList().entrySet()) {
-        var shieldEntity = entityEntry.getValue();
-        var v = deltaTracker.getGameTimeDeltaPartialTick(false);
-        var string = ("id: %d," +
-          "X: %.3f," +
-          "Y: %.3f," +
-          "Z: %.3f," +
-          "XR: %.3f %.3f," +
-          "YR: %.3f %.3f").formatted(
-          entityEntry.getKey(),
-          shieldEntity.getX(),
-          shieldEntity.getY(),
-          shieldEntity.getZ(),
-          shieldEntity.getXRot(), shieldEntity.getViewXRot(v),
-          shieldEntity.getYRot(), shieldEntity.getViewYRot(v));
-        guiGraphics.drawString(font, string, x, y, 0xFFFFFF);
-        y += font.lineHeight + 1;
-      }
-    }
-*/
     var oldValue = this.value;
     var oldMaxValue = this.maxValue;
     var newValue = SourceSoulUtil.getValue(this.player);

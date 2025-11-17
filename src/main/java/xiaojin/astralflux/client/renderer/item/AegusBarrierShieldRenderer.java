@@ -1,7 +1,6 @@
 package xiaojin.astralflux.client.renderer.item;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
 import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
@@ -13,20 +12,18 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.culling.Frustum;
-import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
-import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Vector2d;
 import org.joml.Vector2f;
 import org.joml.Vector3d;
+import xiaojin.astralflux.client.ModRenderType;
 import xiaojin.astralflux.client.renderer.ModRender;
 import xiaojin.astralflux.core.AstralFlux;
 import xiaojin.astralflux.init.ModDateAttachmentTypes;
@@ -37,15 +34,16 @@ import java.util.List;
 /**
  * 埃癸斯壁垒盾牌渲染
  */
-public class AegusBarrierShieldShieldRenderer implements ModRender {
+public class AegusBarrierShieldRenderer implements ModRender {
   private static final ItemStack EMPTY_ITEM_STACK = ItemStack.EMPTY;
   public static final ResourceLocation MODDED_RL = AstralFlux.modRL("entity/aegus_barrier_shield");
   public static final ModelResourceLocation MODEL_RESOURCE_LOCATION =
     ModelResourceLocation.standalone(MODDED_RL);
   private static final ItemColors ITEM_COLORS_COLOR = ItemColors.createDefault(BlockColors.createDefault());
+
   private BakedModel bakedModel;
 
-  public static final AegusBarrierShieldShieldRenderer INSTANCE = new AegusBarrierShieldShieldRenderer();
+  public static final AegusBarrierShieldRenderer INSTANCE = new AegusBarrierShieldRenderer();
 
   public void init() {
     this.bakedModel = Minecraft.getInstance().getModelManager().getModel(MODEL_RESOURCE_LOCATION);
@@ -63,11 +61,11 @@ public class AegusBarrierShieldShieldRenderer implements ModRender {
       return;
     }
 
-    var barrierShields = player.getExistingDataOrNull(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD);
-    if (barrierShields == null) {
+    var handler = player.getExistingDataOrNull(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD);
+    if (handler == null) {
       return;
     }
-    var partialTicks = partialTick.getGameTimeDeltaPartialTick(true);
+    var partialTicks = partialTick.getGameTimeDeltaPartialTick(false);
 
     var renderBuffers = minecraft.renderBuffers();
     var bufferSource = renderBuffers.bufferSource();
@@ -78,11 +76,9 @@ public class AegusBarrierShieldShieldRenderer implements ModRender {
     poseStack.pushPose();
     poseStack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
 
-    var manager = barrierShields.getManager();
-
     // 将偏航角和俯仰角转换为方向向量
-    var yaw = manager.getViewYRot(partialTicks) * Mth.DEG_TO_RAD;
-    var pitch = manager.getViewXRot(partialTicks) * Mth.DEG_TO_RAD;
+    var yaw = handler.getViewYRot(partialTicks) * Mth.DEG_TO_RAD;
+    var pitch = handler.getViewXRot(partialTicks) * Mth.DEG_TO_RAD;
 
     // 计算方向向量
     var dirX = -Math.sin(yaw) * Math.cos(pitch);
@@ -95,13 +91,10 @@ public class AegusBarrierShieldShieldRenderer implements ModRender {
     poseStack.translate(pos.x, pos.y, pos.z);
 
     poseStack.mulPose(Axis.YP.rotation(-yaw));
-    // poseStack.mulPose(Axis.XP.rotation(pitch));
 
     var indexVetexs = ModUtil.getIndexVetexs60(1.5f);
-    for (var entry : manager.getShieldList().entrySet()) {
+    for (var entry : handler.getShields().entrySet()) {
       var number = entry.getKey();
-      var entity = entry.getValue();
-
       poseStack.pushPose();
 
       var rot = this.getResult(number);
@@ -116,7 +109,7 @@ public class AegusBarrierShieldShieldRenderer implements ModRender {
         indexVetex.z() + offset.z
       );
 
-      renderModel(poseStack, bufferSource, combinedLight, combinedOverlay);
+      renderModel(number, poseStack, bufferSource, combinedLight, combinedOverlay);
       poseStack.popPose();
     }
 
@@ -192,57 +185,40 @@ public class AegusBarrierShieldShieldRenderer implements ModRender {
     return new Vector2f(entityXRot, entityYRot);
   }
 
-  private void renderModel(final PoseStack poseStack, final MultiBufferSource.BufferSource bufferSource, final int combinedLight, final int combinedOverlay) {
-    boolean flag1 = true;
+  private void renderModel(int i, final PoseStack poseStack, final MultiBufferSource.BufferSource bufferSource, final int combinedLight, final int combinedOverlay) {
+    ItemStack stack = EMPTY_ITEM_STACK;
     poseStack.pushPose();
     poseStack.translate(-0.7f, -0.7f, -0.5f);
     poseStack.scale(1.5f, 1.5f, 1);
-    for (var model : this.bakedModel.getRenderPasses(EMPTY_ITEM_STACK, flag1)) {
-      for (var rendertype : model.getRenderTypes(EMPTY_ITEM_STACK, flag1)) {
-        var vertexconsumer = ItemRenderer.getFoilBufferDirect(bufferSource,
-          rendertype,
-          false,
-          EMPTY_ITEM_STACK.hasFoil());
-        var randomsource = RandomSource.create();
-        long i = 42L;
 
-        for (Direction direction : Direction.values()) {
-          randomsource.setSeed(i);
-          this.renderQuadList(poseStack,
-            vertexconsumer,
-            model.getQuads(null, direction, randomsource),
-            EMPTY_ITEM_STACK,
-            combinedLight,
-            combinedOverlay);
-        }
-
-        randomsource.setSeed(i);
-        this.renderQuadList(poseStack,
-          vertexconsumer,
-          model.getQuads(null, null, randomsource),
-          EMPTY_ITEM_STACK,
-          combinedLight,
-          combinedOverlay);
-      }
+    for (BakedModel model : this.bakedModel.getRenderPasses(stack, false)) {
+      VertexConsumer vertexconsumer = bufferSource.getBuffer(ModRenderType.AEGUS_BARRIER_SHIELD);
+      RandomSource randomsource = RandomSource.create();
+      randomsource.setSeed(42L);
+      List<BakedQuad> quads = model.getQuads(null, null, randomsource);
+      this.renderQuadList(i, poseStack, vertexconsumer, quads, stack, combinedLight, combinedOverlay);
     }
+
     poseStack.popPose();
   }
 
-  private void renderQuadList(PoseStack poseStack, VertexConsumer buffer, List<BakedQuad> quads, ItemStack itemStack, int combinedLight, int combinedOverlay) {
+  private void renderQuadList(int i, PoseStack poseStack, VertexConsumer buffer, List<BakedQuad> quads, ItemStack itemStack, int combinedLight, int combinedOverlay) {
     boolean flag = !itemStack.isEmpty();
-    var posestack$pose = poseStack.last();
+    PoseStack.Pose posestackPose = poseStack.last();
 
-    for (var bakedquad : quads) {
-      int i = -1;
+    for (BakedQuad bakedquad : quads) {
+      int l = -1;
       if (flag && bakedquad.isTinted()) {
-        i = ITEM_COLORS_COLOR.getColor(itemStack, bakedquad.getTintIndex());
+        l = ITEM_COLORS_COLOR.getColor(itemStack, bakedquad.getTintIndex());
       }
 
-      float f = (float) FastColor.ARGB32.alpha(i) / 255.0F;
-      float f1 = (float) FastColor.ARGB32.red(i) / 255.0F;
-      float f2 = (float) FastColor.ARGB32.green(i) / 255.0F;
-      float f3 = (float) FastColor.ARGB32.blue(i) / 255.0F;
-      buffer.putBulkData(posestack$pose, bakedquad, f1, f2, f3, f, combinedLight, combinedOverlay, true);
+      float a = (float) FastColor.ARGB32.alpha(l) / 255.0F;
+      float r = (float) FastColor.ARGB32.red(l) / 255.0F;
+      float g = (float) FastColor.ARGB32.green(l) / 255.0F;
+      float b = (float) FastColor.ARGB32.blue(l) / 255.0F;
+      double timeVariable = (double) (System.currentTimeMillis() % 100000) / 250;
+      float v = (float) (0.1 * Math.sin(timeVariable + i * 50) + 0.2);
+      buffer.putBulkData(posestackPose, bakedquad, r, g, b, a * v, combinedLight, combinedOverlay, true);
     }
   }
 }

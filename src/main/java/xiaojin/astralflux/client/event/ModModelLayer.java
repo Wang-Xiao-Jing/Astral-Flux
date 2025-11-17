@@ -18,13 +18,11 @@ import java.util.stream.Stream;
 @EventBusSubscriber(modid = AstralFlux.ID, value = Dist.CLIENT)
 public final class ModModelLayer {
   private static final Set<ModelLayerLocation> ALL_MODELS = Sets.newHashSet();
-  public static final ModelLayerLocation AEGUS_BARRIER_SHIELD = register("aegus_barrier_shield");
 
   @SubscribeEvent
   public static void registerLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
     AstralFlux.LOGGER.info("Registering Layer Definitions");
 
-    event.registerLayerDefinition(ModModelLayer.AEGUS_BARRIER_SHIELD, AegusBarrierShieldEntityRenderer::createBodyLayer);
 
     AstralFlux.LOGGER.info("Registering Layer Definitions Completed");
   }

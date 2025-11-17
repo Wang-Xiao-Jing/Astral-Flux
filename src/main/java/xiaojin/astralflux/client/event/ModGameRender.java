@@ -5,7 +5,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
-import xiaojin.astralflux.client.renderer.item.AegusBarrierShieldShieldRenderer;
+import xiaojin.astralflux.client.renderer.item.AegusBarrierShieldRenderer;
 import xiaojin.astralflux.core.AstralFlux;
 
 
@@ -21,9 +21,9 @@ public final class ModGameRender {
     final var pose = event.getPoseStack();
     final var camera = event.getCamera();
     final var partialTick = event.getPartialTick();
-     if (stage == RenderLevelStageEvent.Stage.AFTER_ENTITIES) {
-       AegusBarrierShieldShieldRenderer.INSTANCE.levelRender(
-         minecraft, level, frustum, pose, camera, partialTick);
-     }
+    if (stage == RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
+      AegusBarrierShieldRenderer.INSTANCE.levelRender(
+        minecraft, level, frustum, pose, camera, partialTick);
+    }
   }
-}
+ }
