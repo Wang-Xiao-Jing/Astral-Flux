@@ -1,5 +1,6 @@
 package xiaojin.astralflux.client;
 
+import net.minecraft.client.model.HumanoidModel;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -8,9 +9,12 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
+import xiaojin.astralflux.client.renderer.entiey.armpose.AegusBarrierArmPose;
 import xiaojin.astralflux.client.renderer.item.AegusBarrierShieldRenderer;
 import xiaojin.astralflux.core.AstralFlux;
 import xiaojin.astralflux.core.AstralFluxKey;
+import xiaojin.astralflux.init.ModItems;
 
 import static xiaojin.astralflux.core.AstralFlux.ID;
 
@@ -20,6 +24,11 @@ public final class AstralFluxClient {
   @SubscribeEvent
   public static void onClientSetup(FMLClientSetupEvent event) {
     AstralFlux.LOGGER.info("HELLO FROM CLIENT SETUP");
+  }
+
+  @SubscribeEvent
+  public static void registerClientExtensionsEvent(RegisterClientExtensionsEvent event) {
+    event.registerItem(new AegusBarrierArmPose(), ModItems.AEGUS_BARRIER);
   }
 
    @SubscribeEvent

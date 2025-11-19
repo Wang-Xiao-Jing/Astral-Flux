@@ -65,6 +65,7 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
   private UUID ownerUUID;
   private Player cachedOwner;
   private Vec3 playerPos;
+  @Nullable
   private AegusBarrierShieldHandler shieldHandler;
   private float targetXRot;
   private float targetYRot;
@@ -122,7 +123,9 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
       this.lerpTo(position.x, position.y - 0.5, position.z, owner.getYRot(), 0, 5);
     }
 
-    this.shieldHandler.setRot(0, getYRot());
+    if (this.shieldHandler != null) {
+      this.shieldHandler.setRot(0, getYRot());
+    }
 
     if (this.lerpStep > 0) {
       this.lerpPositionAndRotationStep(
@@ -160,11 +163,14 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     final var shieldSet = this.shieldList.entrySet();
 
     shieldSet.forEach(entry -> {
-      final int index = entry.getKey();
-      final var shieldEntity = entry.getValue();
+      final AegusBarrierShieldEntity shieldEntity = entry.getValue();
+      if (shieldEntity == null) {
+        return;
+      }
 
-      var offsetPos = getOffsetPos(index, angle, this.position());
-      var result = getResult(index).add(new Vector2f(0, this.getYRot()));
+      final int index = entry.getKey();
+      Vec3 offsetPos = getOffsetPos(index, angle, this.position());
+      Vector2f result = getResult(index).add(new Vector2f(0, this.getYRot()));
 
       shieldEntity.moveTo(offsetPos.x, offsetPos.y, offsetPos.z, result.y, result.x);
       if (this.shieldHandler != null) {
@@ -173,7 +179,7 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     });
 
     shieldSet.stream()
-      .filter(it -> it.getValue().shouldRemove())
+      .filter(it -> it.getValue().shouldRemove() || it.getValue() == null)
       .forEach(this::removeShieldEntity);
   }
 
@@ -303,7 +309,7 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
       }
     }
     // 添加盾牌
-    if (getExpandsCount() != 0 && this.tickCount % (4) == 0) {
+    if (getExpandsCount() > 0 && this.tickCount % (4) == 0) {
       addShield();
       if (!this.isConsume()) {
         setConsume(true);

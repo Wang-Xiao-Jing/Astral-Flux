@@ -19,12 +19,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector2f;
 import org.joml.Vector3d;
 import xiaojin.astralflux.client.ModRenderType;
 import xiaojin.astralflux.client.renderer.ModRender;
+import xiaojin.astralflux.common.item.aegusbarrier.AegusBarrierShieldHandler;
 import xiaojin.astralflux.core.AstralFlux;
 import xiaojin.astralflux.init.ModDateAttachmentTypes;
 import xiaojin.astralflux.util.ModUtil;
@@ -35,7 +37,7 @@ import java.util.List;
  * 埃癸斯壁垒盾牌渲染
  */
 public class AegusBarrierShieldRenderer implements ModRender {
-  private static final ItemStack EMPTY_ITEM_STACK = ItemStack.EMPTY;
+  public static final ItemStack ITEM_STACK = ItemStack.EMPTY;
   public static final ResourceLocation MODDED_RL = AstralFlux.modRL("entity/aegus_barrier_shield");
   public static final ModelResourceLocation MODEL_RESOURCE_LOCATION =
     ModelResourceLocation.standalone(MODDED_RL);
@@ -56,25 +58,30 @@ public class AegusBarrierShieldRenderer implements ModRender {
                           final PoseStack poseStack,
                           final Camera camera,
                           final DeltaTracker partialTick) {
-    var player = minecraft.player;
-    if (player == null) {
-      return;
-    }
+    level.players().forEach(player -> {
+      if (!player.isAlive()){
+        return;
+      }
+      var handler = player.getExistingDataOrNull(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD);
+      if (handler == null) {
+        return;
+      }
+      poseStack.pushPose();
+      var cameraPos = camera.getPosition();
+      poseStack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
+      render(handler, player, minecraft, poseStack, partialTick);
+      poseStack.popPose();
+    });
+  }
 
-    var handler = player.getExistingDataOrNull(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD);
-    if (handler == null) {
-      return;
-    }
+  private void render(final AegusBarrierShieldHandler handler, final Player player, final Minecraft minecraft, final PoseStack poseStack, final DeltaTracker partialTick) {
     var partialTicks = partialTick.getGameTimeDeltaPartialTick(false);
+    var realtimeTicks = partialTick.getRealtimeDeltaTicks();
 
     var renderBuffers = minecraft.renderBuffers();
     var bufferSource = renderBuffers.bufferSource();
-    var cameraPos = camera.getPosition();
     var combinedLight = LightTexture.FULL_BRIGHT;
     var combinedOverlay = OverlayTexture.NO_OVERLAY;
-
-    poseStack.pushPose();
-    poseStack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
 
     // 将偏航角和俯仰角转换为方向向量
     var yaw = handler.getViewYRot(partialTicks) * Mth.DEG_TO_RAD;
@@ -88,13 +95,16 @@ public class AegusBarrierShieldRenderer implements ModRender {
 
     var eyePosition = player.getEyePosition(partialTicks);
     var pos = eyePosition.add(direction.scale(2f));
-    poseStack.translate(pos.x, pos.y, pos.z);
 
+    poseStack.translate(pos.x, pos.y, pos.z);
     poseStack.mulPose(Axis.YP.rotation(-yaw));
 
     var indexVetexs = ModUtil.getIndexVetexs60(1.5f);
     for (var entry : handler.getShields().entrySet()) {
       var number = entry.getKey();
+      float start = Math.min(1, entry.getValue() - 1 / (20 * 0.2f));
+      float end = Math.min(1, entry.getValue() / (20 * 0.2f));
+      var size = Mth.lerp(realtimeTicks, start, end);
       poseStack.pushPose();
 
       var rot = this.getResult(number);
@@ -109,11 +119,13 @@ public class AegusBarrierShieldRenderer implements ModRender {
         indexVetex.z() + offset.z
       );
 
+      poseStack.pushPose();
+      poseStack.translate(-0.7f * size, -0.7f * size, -0.5f * size);
+      poseStack.scale(1.5f * size, 1.5f * size, 1 * size);
       renderModel(number, poseStack, bufferSource, combinedLight, combinedOverlay);
       poseStack.popPose();
+      poseStack.popPose();
     }
-
-    poseStack.popPose();
   }
 
   private Vector3d offset(final int index) {
@@ -186,30 +198,23 @@ public class AegusBarrierShieldRenderer implements ModRender {
   }
 
   private void renderModel(int i, final PoseStack poseStack, final MultiBufferSource.BufferSource bufferSource, final int combinedLight, final int combinedOverlay) {
-    ItemStack stack = EMPTY_ITEM_STACK;
-    poseStack.pushPose();
-    poseStack.translate(-0.7f, -0.7f, -0.5f);
-    poseStack.scale(1.5f, 1.5f, 1);
-
-    for (BakedModel model : this.bakedModel.getRenderPasses(stack, false)) {
+    for (BakedModel model : this.bakedModel.getRenderPasses(ITEM_STACK, false)) {
       VertexConsumer vertexconsumer = bufferSource.getBuffer(ModRenderType.AEGUS_BARRIER_SHIELD);
       RandomSource randomsource = RandomSource.create();
       randomsource.setSeed(42L);
       List<BakedQuad> quads = model.getQuads(null, null, randomsource);
-      this.renderQuadList(i, poseStack, vertexconsumer, quads, stack, combinedLight, combinedOverlay);
+      this.renderQuadList(i, poseStack, vertexconsumer, quads, combinedLight, combinedOverlay);
     }
-
-    poseStack.popPose();
   }
 
-  private void renderQuadList(int i, PoseStack poseStack, VertexConsumer buffer, List<BakedQuad> quads, ItemStack itemStack, int combinedLight, int combinedOverlay) {
-    boolean flag = !itemStack.isEmpty();
+  private void renderQuadList(int i, PoseStack poseStack, VertexConsumer buffer, List<BakedQuad> quads, int combinedLight, int combinedOverlay) {
+    boolean flag = !ITEM_STACK.isEmpty();
     PoseStack.Pose posestackPose = poseStack.last();
 
     for (BakedQuad bakedquad : quads) {
       int l = -1;
       if (flag && bakedquad.isTinted()) {
-        l = ITEM_COLORS_COLOR.getColor(itemStack, bakedquad.getTintIndex());
+        l = ITEM_COLORS_COLOR.getColor(ITEM_STACK, bakedquad.getTintIndex());
       }
 
       float a = (float) FastColor.ARGB32.alpha(l) / 255.0F;

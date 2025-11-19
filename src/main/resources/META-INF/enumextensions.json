@@ -1,0 +1,13 @@
+{
+  "entries": [
+    {
+      "enum": "net/minecraft/client/model/HumanoidModel$ArmPose",
+      "name": "ASTRALFLUX_AEGUS_BARRIER_ITEM_ARMPOSE",
+      "constructor": "(ZLnet/neoforged/neoforge/client/IArmPoseTransformer;)V",
+      "parameters": {
+        "class": "xiaojin/astralflux/client/ModClientEnumParams",
+        "field": "AEGUS_BARRIER_ITEM_ARMPOSE"
+      }
+    }
+  ]
+}

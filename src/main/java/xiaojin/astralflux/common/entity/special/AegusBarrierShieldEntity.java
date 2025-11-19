@@ -129,6 +129,10 @@ public class AegusBarrierShieldEntity extends Entity implements GeoEntity, Trace
     return shouldRemove;
   }
 
+  public void setRemove() {
+    this.shouldRemove = true;
+  }
+
   public boolean isIntact() {
     return this.entityData.get(IS_INTACT_ACCESSOR);
   }

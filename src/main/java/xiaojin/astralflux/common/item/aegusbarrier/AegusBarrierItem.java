@@ -1,5 +1,6 @@
 package xiaojin.astralflux.common.item.aegusbarrier;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
@@ -8,6 +9,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import xiaojin.astralflux.api.ItemLeftClickEmpty;
 import xiaojin.astralflux.api.sourcesoul.IModifySourceSouItem;
 import xiaojin.astralflux.init.ModDataComponentTypes;
@@ -22,7 +24,7 @@ public class AegusBarrierItem extends Item implements IModifySourceSouItem, Item
 
   @Override
   public UseAnim getUseAnimation(ItemStack stack) {
-    return UseAnim.BOW;
+    return UseAnim.CUSTOM;
   }
 
   @Override
@@ -37,9 +39,9 @@ public class AegusBarrierItem extends Item implements IModifySourceSouItem, Item
     }
 
     // 添加护盾
-    var handler = player.getExistingDataOrNull(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD);
+    var handler = player.getData(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD);
 
-    if (handler != null && handler.getExpandsCount() >= 7) {
+    if (handler.getExpandsCount() >= 7) {
       // 添加失败 因为已经达到最大数量
       return InteractionResultHolder.fail(itemStack);
     }
@@ -48,8 +50,14 @@ public class AegusBarrierItem extends Item implements IModifySourceSouItem, Item
       return InteractionResultHolder.fail(itemStack);
     }
 
+    handler.getManager().addShield();
     player.startUsingItem(usedHand);
-    return InteractionResultHolder.sidedSuccess(itemStack, isClient);
+    return InteractionResultHolder.consume(itemStack);
+  }
+
+  @Override
+  public boolean canAttackBlock(final BlockState state, final Level level, final BlockPos pos, final Player player) {
+    return false;
   }
 
   @Override
@@ -76,27 +84,33 @@ public class AegusBarrierItem extends Item implements IModifySourceSouItem, Item
     if (!(livingEntity instanceof Player player) || clientSide) {
       return;
     }
-    enterCD(stack, player);
+
+    // 添加护盾
+    var handler = player.getExistingDataOrNull(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD);
+    if (handler == null) {
+      return;
+    }
 
     if (remainingUseDuration - 1 > 0) {
+      handler.remove(player);
+      enterCD(stack, player);
       return;
     }
 
     var modifyValue = getModifyValue(stack, player);
     if (!SourceSoulUtil.isModifyAllowed(player, modifyValue)) {
+      handler.remove(player);
+      enterCD(stack, player);
       return;
     }
 
-    // 添加护盾
-    var handler = player.getData(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD);
     if (handler.getExpandsCount() >= 7) {
+      enterCD(stack, player);
       return;
     }
 
-    var manager = handler.getManager();
-    // 添加未完全成型的护盾
-    manager.addShield();
     SourceSoulUtil.modify(player, modifyValue);
+    enterCD(stack, player);
   }
 
   @Override
