@@ -139,6 +139,8 @@ public class AegusBarrierItem extends Item implements IModifySourceSouItem, Item
    * 进入冷却
    */
   public void enterCD(final ItemStack stack, final Player player) {
+    // TODO 测试完成记得恢复
+//    player.getCooldowns().addCooldown(this, (20 * 10));
     player.getCooldowns().addCooldown(this, (int) (20 * 10 * 0.1f));
   }
 

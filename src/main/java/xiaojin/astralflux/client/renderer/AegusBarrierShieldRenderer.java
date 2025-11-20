@@ -8,6 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.client.color.item.ItemColors;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -24,6 +25,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector2f;
 import org.joml.Vector3d;
+import org.spongepowered.asm.mixin.injection.struct.InjectorGroupInfo;
 import xiaojin.astralflux.client.ModRenderType;
 import xiaojin.astralflux.common.item.aegusbarrier.AegusBarrierShieldHandler;
 import xiaojin.astralflux.core.AstralFlux;
@@ -31,6 +33,11 @@ import xiaojin.astralflux.init.ModDateAttachmentTypes;
 import xiaojin.astralflux.util.ModUtil;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 埃癸斯壁垒盾牌渲染
@@ -51,79 +58,75 @@ public class AegusBarrierShieldRenderer implements ModRender {
   }
 
   @Override
-  public void levelRender(final Minecraft minecraft,
-                          final ClientLevel level,
-                          final Frustum frustum,
-                          final PoseStack poseStack,
-                          final Camera camera,
-                          final DeltaTracker partialTick) {
-    level.players().forEach(player -> {
-      if (!player.isAlive()){
-        return;
-      }
-      var handler = player.getExistingDataOrNull(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD);
-      if (handler == null) {
-        return;
-      }
-      poseStack.pushPose();
-      var cameraPos = camera.getPosition();
-      poseStack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
-      render(handler, player, minecraft, poseStack, partialTick);
-      poseStack.popPose();
-    });
-  }
-
-  private void render(final AegusBarrierShieldHandler handler, final Player player, final Minecraft minecraft, final PoseStack poseStack, final DeltaTracker partialTick) {
+  public void levelRender(final Minecraft minecraft, final ClientLevel level, final Frustum frustum, final PoseStack poseStack, final Camera camera, final DeltaTracker partialTick) {
+    var cameraPos = camera.getPosition();
     var partialTicks = partialTick.getGameTimeDeltaPartialTick(false);
     var realtimeTicks = partialTick.getRealtimeDeltaTicks();
+
+    var players = level.players().stream()
+      .filter(player -> player != null &&
+        player.isAlive() &&
+        player.shouldRenderAtSqrDistance(player.distanceToSqr(cameraPos.x, cameraPos.y, cameraPos.z)) &&
+        frustum.isVisible(player.getBoundingBox()))
+      .map(player -> Map.entry(player, Optional.ofNullable(player.getExistingDataOrNull(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD))))
+      .filter(entry -> entry.getValue().isPresent())
+      .collect(Collectors.toMap(Map.Entry::getKey, entryValue -> entryValue.getValue().get()));
+    if (players.isEmpty()) {
+      return;
+    }
 
     var renderBuffers = minecraft.renderBuffers();
     var bufferSource = renderBuffers.bufferSource();
     var combinedLight = LightTexture.FULL_BRIGHT;
     var combinedOverlay = OverlayTexture.NO_OVERLAY;
 
-    // 将偏航角和俯仰角转换为方向向量
-    var yaw = handler.getViewYRot(partialTicks) * Mth.DEG_TO_RAD;
+    poseStack.pushPose();
+    poseStack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
 
-    // 计算方向向量
-    var dirX = -Math.sin(yaw) * Math.cos(0);
-    var dirY = -Math.sin(0);
-    var dirZ = Math.cos(yaw) * Math.cos(0);
-    var direction = new Vec3(dirX, 0, dirZ).normalize();
-
-    var eyePosition = player.getEyePosition(partialTicks);
-    var pos = eyePosition.add(direction.scale(2f));
-
-    poseStack.translate(pos.x, pos.y, pos.z);
-    poseStack.mulPose(Axis.YP.rotation(-yaw));
-
-    var indexVetexs = ModUtil.getIndexVetexs60(1.5f);
-    for (var entry : handler.getShields().entrySet()) {
-      var number = entry.getKey();
-      float start = Math.min(1, entry.getValue() - 1 / (20 * 0.2f));
-      float end = Math.min(1, entry.getValue() / (20 * 0.2f));
-      var size = Mth.lerp(realtimeTicks, start, end);
+    players.forEach((player,handler) -> {
       poseStack.pushPose();
 
-      var rot = this.getResult(number);
-      poseStack.mulPose(Axis.YP.rotationDegrees(rot.y));
-      poseStack.mulPose(Axis.XP.rotationDegrees(rot.x));
+      Vector3d[] indexVetexs = ModUtil.getIndexVetexs60(1.5f);
+      // 将偏航角和俯仰角转换为方向向量
+      float yaw = handler.getViewYRot(partialTicks) * Mth.DEG_TO_RAD;
+      double dirX = -Math.sin(yaw) * Math.cos(0);
+      double dirZ = Math.cos(yaw) * Math.cos(0);
+      // 计算方向向量
+      Vec3 direction = new Vec3(dirX, 0, dirZ).normalize();
+      Vec3 eyePosition = player.getEyePosition(partialTicks);
+      Vec3 pos = eyePosition.add(direction.scale(2f));
 
-      var offset = this.offset(number);
-      var indexVetex = indexVetexs[number];
-      poseStack.translate(
-        indexVetex.x() + offset.x,
-        indexVetex.y() + offset.y,
-        indexVetex.z() + offset.z
-      );
+      poseStack.translate(pos.x, pos.y, pos.z);
+      poseStack.mulPose(Axis.YP.rotation(-yaw));
 
-      poseStack.pushPose();
-      poseStack.translate(-0.7f * size, -0.7f * size, -0.5f * size);
-      poseStack.scale(1.5f * size, 1.5f * size, 1 * size);
-      renderModel(number, poseStack, bufferSource, combinedLight, combinedOverlay);
+      for (var entry : handler.getShields().entrySet()) {
+        int number = entry.getKey();
+        float start = Math.min(1, entry.getValue() - 1 / (20 * 0.2f));
+        float end = Math.min(1, entry.getValue() / (20 * 0.2f));
+        float size = Mth.lerp(realtimeTicks, start, end);
+        Vector2f rot = this.getResult(number);
+        Vector3d offset = this.offset(number);
+        Vector3d indexVetex = indexVetexs[number];
+
+        poseStack.pushPose();
+
+        poseStack.mulPose(Axis.YP.rotationDegrees(rot.y));
+        poseStack.mulPose(Axis.XP.rotationDegrees(rot.x));
+        poseStack.translate(indexVetex.x() + offset.x, indexVetex.y() + offset.y, indexVetex.z() + offset.z);
+
+        poseStack.pushPose();
+
+        poseStack.translate(-0.7f * size, -0.7f * size, -0.5f * size);
+        poseStack.scale(1.5f * size, 1.5f * size, 1 * size);
+        renderModel(number, poseStack, bufferSource, combinedLight, combinedOverlay);
+
+        poseStack.popPose();
+        poseStack.popPose();
+      }
       poseStack.popPose();
-      poseStack.popPose();
-    }
+    });
+
+    poseStack.popPose();
   }
 
   private Vector3d offset(final int index) {

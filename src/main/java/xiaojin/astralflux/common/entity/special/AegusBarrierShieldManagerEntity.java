@@ -108,11 +108,7 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     }
 
     // 检测是否需要增加或移除护盾
-    if (increaseOrRemoval(isClientSide, owner)) {
-      return;
-    }
-
-    if (isRemoved()) {
+    if (increaseOrRemoval(isClientSide, owner) || isRemoved()) {
       return;
     }
 
@@ -149,8 +145,8 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
       );
 
       if (this.shieldHandler != null) {
-        this.shieldHandler.lerpOldRotationStep(lerpStep, yRotO);
-        this.shieldHandler.lerpRotationStep(lerpStep, owner.getYRot());
+        this.shieldHandler.lerpOldRotationStep(this.lerpStep, this.yRotO);
+        this.shieldHandler.lerpRotationStep(this.lerpStep, owner.getYRot());
       }
 
       this.lerpStep--;
@@ -169,17 +165,13 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
 
   private void tweaksSubShields(@Nonnull final Player owner) {
     final Vec3 lookingVec = this.getLookAngle();
-
     final double angle = Math.atan2(lookingVec.x, lookingVec.z);
-    final var shieldSet = this.shieldList.entrySet();
 
-    shieldSet.forEach(entry -> {
-      final AegusBarrierShieldEntity shieldEntity = entry.getValue();
+    this.shieldList.forEach((index, shieldEntity) -> {
       if (shieldEntity == null) {
         return;
       }
 
-      final int index = entry.getKey();
       Vec3 offsetPos = getOffsetPos(index, angle, this.position());
       Vector2f result = getResult(index).add(new Vector2f(0, this.getYRot()));
 
@@ -189,7 +181,7 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
       }
     });
 
-    shieldSet.stream()
+    this.shieldList.entrySet().stream()
       .filter(it -> it.getValue() == null || it.getValue().shouldRemove())
       .forEach(this::removeShieldEntity);
   }
@@ -219,6 +211,11 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
 
   public Map<Integer, AegusBarrierShieldEntity> getShieldList() {
     return Map.copyOf(this.shieldList);
+  }
+
+  @Override
+  public boolean isInvisible() {
+    return false;
   }
 
   @Internal
@@ -287,7 +284,7 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     data.get(SHIELD_LIST_ACCESSOR).remove(index);
     data.set(SHIELD_LIST_ACCESSOR, data.get(SHIELD_LIST_ACCESSOR),true);
     onSyncedDataUpdated(SHIELD_LIST_ACCESSOR);
-    if (shieldEntity!=null){
+    if (shieldEntity != null) {
       shieldEntity.remove(RemovalReason.DISCARDED);
     }
   }

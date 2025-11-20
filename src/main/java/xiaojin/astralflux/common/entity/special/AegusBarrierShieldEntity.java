@@ -1,6 +1,9 @@
 package xiaojin.astralflux.common.entity.special;
 
 import com.google.common.base.MoreObjects;
+import net.minecraft.client.particle.FireworkParticles;
+import net.minecraft.core.particles.BlockParticleOption;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -8,10 +11,12 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.TraceableEntity;import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
@@ -61,6 +66,17 @@ public class AegusBarrierShieldEntity extends Entity implements GeoEntity, Trace
     if (this.tickCount >= 20 * 0.2 && !isIntact()) {
       this.setIntact(true);
     }
+
+    RandomSource randomSource = getRandom();
+    if (level() instanceof ServerLevel serverLevel && randomSource.nextInt(0,10) == 0) {
+      Vec3 position = position();
+      serverLevel.sendParticles(ParticleTypes.END_ROD, position.x, position.y, position.z,
+        (int) Math.max(1, randomSource.nextFloat() * 5),
+        2 * randomSource.nextFloat(),
+        2 * randomSource.nextFloat(),
+        2 * randomSource.nextFloat(), 0);
+    }
+
     super.tick();
   }
 
@@ -98,6 +114,10 @@ public class AegusBarrierShieldEntity extends Entity implements GeoEntity, Trace
       Vec3 position = position();
       serverLevel.playSound(null, position.x, position.y, position.z, SoundEvents.BEACON_DEACTIVATE, SoundSource.AMBIENT);
       serverLevel.playSound(null, position.x, position.y, position.z, SoundEvents.GLASS_BREAK, SoundSource.AMBIENT);
+      serverLevel.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, Blocks.LIGHT_BLUE_STAINED_GLASS.defaultBlockState()),
+        position.x, position.y, position.z,
+        (int) (50 * (getRandom().nextFloat() + 0.1f)),
+        0.3, 0.3, 0.3, 0);
     }
     this.shouldRemove = true;
   }
