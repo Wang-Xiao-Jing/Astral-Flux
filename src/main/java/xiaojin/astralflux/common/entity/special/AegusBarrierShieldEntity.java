@@ -13,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animation.AnimatableManager;
+import xiaojin.astralflux.common.AABBAegusBarriesShield;
 import xiaojin.astralflux.init.ModEntityTypes;
 
 import java.util.Optional;
@@ -39,6 +40,7 @@ public class AegusBarrierShieldEntity extends Entity implements GeoEntity, Trace
 
   public AegusBarrierShieldEntity(final EntityType<?> entityType, final Level level) {
     super(entityType, level);
+    this.setBoundingBox(new AABBAegusBarriesShield(this));
   }
 
   public AegusBarrierShieldEntity(final Level level, AegusBarrierShieldManagerEntity manager) {
@@ -46,6 +48,7 @@ public class AegusBarrierShieldEntity extends Entity implements GeoEntity, Trace
     this.manager = manager;
     setOwner(manager.getOwner());
     this.setIntact(false);
+    this.setBoundingBox(new AABBAegusBarriesShield(this));
   }
 
   @Override
