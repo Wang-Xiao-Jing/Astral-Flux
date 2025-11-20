@@ -39,6 +39,7 @@ public class AegusBarrierShieldEntity extends Entity implements GeoEntity, Trace
   private UUID ownerUUID;
   @Nullable
   private Entity cachedOwner;
+  private int hitNumber;
 
   private AegusBarrierShieldManagerEntity manager;
 
@@ -116,11 +117,17 @@ public class AegusBarrierShieldEntity extends Entity implements GeoEntity, Trace
       return false;
     }
 
+    if (level().isClientSide) {
+      return false;
+    }
+
     directEntity.remove(RemovalReason.DISCARDED);
-    if (isIntact()) {
+    if (hitNumber > 0 || isIntact()) {
       this.shouldRemove = true;
-    } else {
-      setIntact(true);
+    }
+
+    if (hitNumber <= 0 && !isIntact()) {
+      hitNumber++;
     }
 
     return true;
