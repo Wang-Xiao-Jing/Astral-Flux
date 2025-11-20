@@ -17,10 +17,8 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector2f;
 import xiaojin.astralflux.api.sourcesoul.IModifySourceSouItem;
-import xiaojin.astralflux.common.entity.special.AegusBarrierShieldEntity;
 import xiaojin.astralflux.core.AstralFlux;
 import xiaojin.astralflux.core.AstralFluxConfig;
-import xiaojin.astralflux.init.ModDateAttachmentTypes;
 import xiaojin.astralflux.util.SourceSoulUtil;
 
 import java.util.*;

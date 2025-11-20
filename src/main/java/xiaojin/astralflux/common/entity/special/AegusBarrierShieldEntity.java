@@ -71,10 +71,10 @@ public class AegusBarrierShieldEntity extends Entity implements GeoEntity, Trace
     if (level() instanceof ServerLevel serverLevel && randomSource.nextInt(0,10) == 0) {
       Vec3 position = position();
       serverLevel.sendParticles(ParticleTypes.END_ROD, position.x, position.y, position.z,
-        (int) Math.max(1, randomSource.nextFloat() * 5),
-        2 * randomSource.nextFloat(),
-        2 * randomSource.nextFloat(),
-        2 * randomSource.nextFloat(), 0);
+        (int) Math.max(1, randomSource.nextFloat() * 3),
+        0.5 * randomSource.nextFloat(),
+        0.5 * randomSource.nextFloat(),
+        0.5 * randomSource.nextFloat(), 0);
     }
 
     super.tick();
