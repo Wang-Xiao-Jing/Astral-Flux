@@ -1,4 +1,4 @@
-package xiaojin.astralflux.client.renderer.item;
+package xiaojin.astralflux.client.renderer;
 
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
@@ -25,7 +25,6 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Vector2f;
 import org.joml.Vector3d;
 import xiaojin.astralflux.client.ModRenderType;
-import xiaojin.astralflux.client.renderer.ModRender;
 import xiaojin.astralflux.common.item.aegusbarrier.AegusBarrierShieldHandler;
 import xiaojin.astralflux.core.AstralFlux;
 import xiaojin.astralflux.init.ModDateAttachmentTypes;
@@ -85,12 +84,11 @@ public class AegusBarrierShieldRenderer implements ModRender {
 
     // 将偏航角和俯仰角转换为方向向量
     var yaw = handler.getViewYRot(partialTicks) * Mth.DEG_TO_RAD;
-    var pitch = handler.getViewXRot(partialTicks) * Mth.DEG_TO_RAD;
 
     // 计算方向向量
-    var dirX = -Math.sin(yaw) * Math.cos(pitch);
-    var dirY = -Math.sin(pitch);
-    var dirZ = Math.cos(yaw) * Math.cos(pitch);
+    var dirX = -Math.sin(yaw) * Math.cos(0);
+    var dirY = -Math.sin(0);
+    var dirZ = Math.cos(yaw) * Math.cos(0);
     var direction = new Vec3(dirX, 0, dirZ).normalize();
 
     var eyePosition = player.getEyePosition(partialTicks);

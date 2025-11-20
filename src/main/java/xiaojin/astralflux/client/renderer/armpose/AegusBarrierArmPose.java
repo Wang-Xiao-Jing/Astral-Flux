@@ -1,4 +1,4 @@
-package xiaojin.astralflux.client.renderer.entiey.armpose;
+package xiaojin.astralflux.client.renderer.armpose;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
@@ -8,7 +8,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import org.jetbrains.annotations.Nullable;
@@ -48,17 +47,18 @@ public class AegusBarrierArmPose implements IClientItemExtensions {
       f1 = 1f;
     }
 
-    float useTime = (float) (System.currentTimeMillis() % 10000) / 500.0F / (Math.clamp(f1, 0.5F, 1F) * 2f);
     if (playerUsingItem && (f1 <= 0.2 || f1 >= 1)) {
       return false;
     }
 
+    float useTime = (float) (System.currentTimeMillis() % 10000) / 500.0F / (Math.clamp(f1, 0.7F, 1F) * 2f);
     float pos = 2.5f / 16f;
+
     poseStack.translate((float) -i * 0.55F, 0, 0);
     poseStack.mulPose(Axis.YP.rotationDegrees(90));
     poseStack.translate(pos, pos, 0);
-    poseStack.scale(0.7f, 0.7f, 0.7f);
-    poseStack.mulPose(Axis.XP.rotationDegrees(useTime * 360.0F / 2.0F));
+    poseStack.scale(0.5f, 0.5f, 0.5f);
+    poseStack.mulPose(Axis.YP.rotationDegrees(useTime * 360.0F / 2.0F));
     poseStack.translate(-pos, -pos, 0);
 
     return !playerUsingItem;
@@ -69,7 +69,7 @@ public class AegusBarrierArmPose implements IClientItemExtensions {
     poseStack.translate((float)i * 0.56F, -0.52F + equippedProg * -0.6F, -0.72F);
   }
 
-  private void applyItemArmAttackTransform(PoseStack poseStack, HumanoidArm hand, float swingProgress) {
+  public void applyItemArmAttackTransform(PoseStack poseStack, HumanoidArm hand, float swingProgress) {
     int i = hand == HumanoidArm.RIGHT ? 1 : -1;
     float f = Mth.sin(swingProgress * swingProgress * (float) Math.PI);
     poseStack.mulPose(Axis.YP.rotationDegrees((float)i * (45.0F + f * -20.0F)));

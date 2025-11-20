@@ -8,21 +8,16 @@ import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
-import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.RenderHandEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.event.RenderPlayerEvent;
-import xiaojin.astralflux.client.renderer.item.AegusBarrierShieldRenderer;
-import xiaojin.astralflux.common.item.aegusbarrier.AegusBarrierItem;
+import xiaojin.astralflux.client.renderer.AegusBarrierShieldRenderer;
 import xiaojin.astralflux.core.AstralFlux;
-import xiaojin.astralflux.init.ModItems;
 
 
 @EventBusSubscriber(modid = AstralFlux.ID, value = Dist.CLIENT)

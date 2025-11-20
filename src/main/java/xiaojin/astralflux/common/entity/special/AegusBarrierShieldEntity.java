@@ -6,9 +6,13 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.TraceableEntity;import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
@@ -89,7 +93,37 @@ public class AegusBarrierShieldEntity extends Entity implements GeoEntity, Trace
   @Override
   public void remove(final RemovalReason reason) {
     super.remove(reason);
+    if (level() instanceof ServerLevel serverLevel) {
+      Vec3 position = position();
+      serverLevel.playSound(null, position.x, position.y, position.z, SoundEvents.BEACON_DEACTIVATE, SoundSource.AMBIENT);
+      serverLevel.playSound(null, position.x, position.y, position.z, SoundEvents.GLASS_BREAK, SoundSource.AMBIENT);
+    }
     this.shouldRemove = true;
+  }
+
+  @Override
+  public boolean hurt(final DamageSource source, final float amount) {
+    if (this.shouldRemove) {
+      return false;
+    }
+
+    Entity sourceEntity = source.getEntity();
+    Entity directEntity = source.getDirectEntity();
+
+    if (sourceEntity != null && sourceEntity.getUUID().equals(this.ownerUUID) ||
+      directEntity == null ||
+      directEntity.getUUID().equals(this.ownerUUID)) {
+      return false;
+    }
+
+    directEntity.remove(RemovalReason.DISCARDED);
+    if (isIntact()) {
+      this.shouldRemove = true;
+    } else {
+      setIntact(true);
+    }
+
+    return true;
   }
 
   public void setOwner(@Nullable final Entity owner) {

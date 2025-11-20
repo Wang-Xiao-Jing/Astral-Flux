@@ -2,15 +2,13 @@ package xiaojin.astralflux.common.entity.special;
 
 import com.google.common.base.MoreObjects;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.server.level.ServerEntity;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
@@ -22,7 +20,6 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2f;
 import org.joml.Vector3d;
 import xiaojin.astralflux.common.item.aegusbarrier.AegusBarrierShieldHandler;
-import xiaojin.astralflux.init.ModDateAttachmentTypes;
 import xiaojin.astralflux.init.ModEntityDataSerializers;
 import xiaojin.astralflux.init.ModEntityTypes;
 import xiaojin.astralflux.util.ModUtil;
@@ -89,9 +86,19 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
 
   @Override
   public void tick() {
+    if (isRemoved()) {
+      return;
+    }
+
     Vec3 oldPlayerPos = this.playerPos;
     Player owner = this.getOwner();
-    final boolean isClientSide = this.level().isClientSide();
+    Level level = this.level();
+    final boolean isClientSide = level.isClientSide();
+
+    if (!isClientSide) {
+      Vec3 position = position();
+      level.playSound(null, position.x, position.y, position.z, SoundEvents.BEACON_AMBIENT, SoundSource.AMBIENT, 0.01f, 1f);
+    }
 
     if (Objects.isNull(owner)) {
       if (!isClientSide) {
@@ -105,10 +112,14 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
       return;
     }
 
+    if (isRemoved()) {
+      return;
+    }
+
     super.tick();
 
     if (this.shieldHandler != null) {
-      this.shieldHandler.setRotO(0, this.yRotO);
+      this.shieldHandler.setRotO(this.yRotO);
     }
 
     final Vec3 position = owner.getEyePosition();
@@ -124,7 +135,7 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     }
 
     if (this.shieldHandler != null) {
-      this.shieldHandler.setRot(0, getYRot());
+      this.shieldHandler.setYRot(getYRot());
     }
 
     if (this.lerpStep > 0) {
@@ -151,7 +162,7 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
       this.setConsumeTics(this.getConsumeTics() + 1);
     }
 
-    if (this.shieldHandler != null) {
+    if (!isClientSide && this.shieldHandler != null) {
       this.shieldHandler.syncData(owner);
     }
   }
@@ -179,7 +190,7 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     });
 
     shieldSet.stream()
-      .filter(it -> it.getValue().shouldRemove() || it.getValue() == null)
+      .filter(it -> it.getValue() == null || it.getValue().shouldRemove())
       .forEach(this::removeShieldEntity);
   }
 
@@ -266,7 +277,7 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     int index = entry.getKey();
     this.removeShieldEntity(index, entry.getValue());
     this.shieldList.remove(index);
-    if (this.shieldHandler != null) {
+    if (!level().isClientSide && this.shieldHandler != null) {
       this.shieldHandler.removeShield(index);
     }
   }
@@ -276,7 +287,9 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     data.get(SHIELD_LIST_ACCESSOR).remove(index);
     data.set(SHIELD_LIST_ACCESSOR, data.get(SHIELD_LIST_ACCESSOR),true);
     onSyncedDataUpdated(SHIELD_LIST_ACCESSOR);
-    shieldEntity.remove(RemovalReason.DISCARDED);
+    if (shieldEntity!=null){
+      shieldEntity.remove(RemovalReason.DISCARDED);
+    }
   }
 
   private void addShieldEntity(int index, final AegusBarrierShieldEntity shieldEntity) {
@@ -289,23 +302,23 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     }
   }
 
-  private boolean increaseOrRemoval(final boolean isClientSide, final Entity entity) {
+  private boolean increaseOrRemoval(final boolean isClientSide, final Player entity) {
     if (isClientSide) {
       return false;
     }
 
-    if (!(entity instanceof LivingEntity livingEntity)) {
+    if (!entity.isAlive() || this.shieldList.isEmpty()) {
       remove(RemovalReason.DISCARDED);
       return true;
     }
 
     // 消耗源魂
     if (this.getConsumeTics() % (20 * 3) == 0) {
-      if (!SourceSoulUtil.isModifyAllowed(livingEntity, CONSUME_VALUE)) {
+      if (!SourceSoulUtil.isModifyAllowed(entity, CONSUME_VALUE)) {
         remove(RemovalReason.DISCARDED);
         return true;
       } else {
-        SourceSoulUtil.modify(livingEntity, CONSUME_VALUE);
+        SourceSoulUtil.modify(entity, CONSUME_VALUE);
       }
     }
     // 添加盾牌
@@ -337,7 +350,7 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     addShieldEntity(count, newEntiey);
     level().addFreshEntity(newEntiey);
     this.setExpandsCount(count + 1);
-    if (shieldHandler != null) {
+    if (!level().isClientSide && shieldHandler != null) {
       this.shieldHandler.setExpandsCount(getExpandsCount());
     }
     return true;
@@ -351,7 +364,7 @@ public class AegusBarrierShieldManagerEntity extends Entity implements Traceable
     super.remove(reason);
     this.shieldList.values().forEach(e -> e.remove(RemovalReason.DISCARDED));
     Player owner = getOwner();
-    if (shieldHandler != null && owner != null) {
+    if (!level().isClientSide && shieldHandler != null && owner != null) {
       this.shieldHandler.remove(owner);
     }
   }

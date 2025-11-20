@@ -1,6 +1,10 @@
 package xiaojin.astralflux.common.item.aegusbarrier;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
@@ -10,6 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import xiaojin.astralflux.api.ItemLeftClickEmpty;
 import xiaojin.astralflux.api.sourcesoul.IModifySourceSouItem;
 import xiaojin.astralflux.init.ModDataComponentTypes;
@@ -39,9 +44,11 @@ public class AegusBarrierItem extends Item implements IModifySourceSouItem, Item
     }
 
     // 添加护盾
-    var handler = player.getData(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD);
+    var handler = isClient ?
+      player.getExistingDataOrNull(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD) :
+      player.getData(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD);
 
-    if (handler.getExpandsCount() >= 7) {
+    if (handler != null && handler.getExpandsCount() >= 7) {
       // 添加失败 因为已经达到最大数量
       return InteractionResultHolder.fail(itemStack);
     }
@@ -50,7 +57,12 @@ public class AegusBarrierItem extends Item implements IModifySourceSouItem, Item
       return InteractionResultHolder.fail(itemStack);
     }
 
-    handler.getManager().addShield();
+    if (!isClient) {
+      ServerLevel serverLevel = (ServerLevel) level;
+      Vec3 position = player.position();
+      serverLevel.playSound(null, position.x, position.y, position.z, SoundEvents.BEACON_ACTIVATE, SoundSource.AMBIENT);
+      handler.getManager().addShield();
+    }
     player.startUsingItem(usedHand);
     return InteractionResultHolder.consume(itemStack);
   }
@@ -127,15 +139,15 @@ public class AegusBarrierItem extends Item implements IModifySourceSouItem, Item
    * 进入冷却
    */
   public void enterCD(final ItemStack stack, final Player player) {
-    player.getCooldowns().addCooldown(this, 20 * 10);
+    player.getCooldowns().addCooldown(this, (int) (20 * 10 * 0.1f));
   }
 
   @Override
   public void leftClick(final ItemStack stack, final Player player) {
     var barrierShields = player.getExistingDataOrNull(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD);
-    if (barrierShields == null) {
-      return;
+    if (barrierShields != null) {
+      barrierShields.remove(player);
     }
-    barrierShields.remove(player);
+    player.removeData(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD);
   }
 }

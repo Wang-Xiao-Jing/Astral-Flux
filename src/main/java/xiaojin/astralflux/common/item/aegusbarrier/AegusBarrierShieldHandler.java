@@ -1,15 +1,24 @@
 package xiaojin.astralflux.common.item.aegusbarrier;
 
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.attachment.AttachmentSyncHandler;
 import net.neoforged.neoforge.attachment.IAttachmentHolder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import software.bernie.geckolib.loading.math.function.generic.AbsFunction;
 import xiaojin.astralflux.common.entity.special.AegusBarrierShieldManagerEntity;
+import xiaojin.astralflux.core.AstralFlux;
 import xiaojin.astralflux.init.ModDateAttachmentTypes;
 
 import java.util.*;
@@ -21,9 +30,7 @@ public final class AegusBarrierShieldHandler {
   private final Map<Integer, Integer> shields;
   private int expandsCount;
   private float yRotO;
-  private float xRotO;
   private float yRot;
-  private float xRot;
   private boolean isRemoved;
 
   public AegusBarrierShieldHandler(final AegusBarrierShieldManagerEntity manager) {
@@ -33,9 +40,7 @@ public final class AegusBarrierShieldHandler {
       .toArray(Map.Entry[]::new)));
     this.expandsCount = manager.getExpandsCount();
     this.yRotO = manager.yRotO;
-    this.xRotO = manager.xRotO;
     this.yRot = manager.getYRot();
-    this.xRot = manager.getXRot();
     this.id = manager.getId();
     this.uuid = manager.getUUID();
   }
@@ -47,15 +52,11 @@ public final class AegusBarrierShieldHandler {
                                     Map<Integer, Integer> shields,
                                     int expandsCount,
                                     float yRotO,
-                                    float xRotO,
-                                    float yRot,
-                                    float xRot) {
+                                    float yRot) {
 
     this.shields = new HashMap<>(shields);
     this.yRotO = yRotO;
-    this.xRotO = xRotO;
     this.yRot = yRot;
-    this.xRot = xRot;
     this.expandsCount = expandsCount;
     this.manager = manager;
     this.uuid = this.manager.getUUID();
@@ -78,6 +79,11 @@ public final class AegusBarrierShieldHandler {
     level.addFreshEntity(entity);
     entity.setHandler(handler);
     player.setData(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD, handler);
+    AttributeInstance instance = player.getAttributes().getInstance(Attributes.MOVEMENT_SPEED);
+    if (instance != null) {
+      AttributeModifier aegusBarrierShield = new AttributeModifier(AstralFlux.modRL("aegus_barrier_shield"), -0.15, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
+      instance.addOrUpdateTransientModifier(aegusBarrierShield);
+    }
     return handler;
   }
 
@@ -89,29 +95,35 @@ public final class AegusBarrierShieldHandler {
       this.manager.remove(Entity.RemovalReason.DISCARDED);
     }
     player.removeData(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD);
+    if (player.level() instanceof ServerLevel serverLevel) {
+      Vec3 position = player.position();
+      serverLevel.playSound(null, position.x, position.y, position.z, SoundEvents.BEACON_DEACTIVATE, SoundSource.AMBIENT);
+      AttributeInstance instance = player.getAttributes().getInstance(Attributes.MOVEMENT_SPEED);
+      if (instance != null) {
+        instance.removeModifier(AstralFlux.modRL("aegus_barrier_shield"));
+      }
+    }
     this.isRemoved = true;
   }
 
-  public void setRotO(float xRotO, float yRotO) {
-    this.xRotO = xRotO;
-    this.yRotO = yRotO;
+  public void setYRot(float yRot) {
+    this.yRot = yRot;
   }
 
-  public void setRot(float xRot, float yRot) {
-    this.xRot = xRot;
-    this.yRot = yRot;
+  public void setRotO(float yRotO) {
+    this.yRotO = yRotO;
   }
 
   public void lerpRotationStep(int steps, double targetYRot) {
     double d0 = 1.0 / (double) steps;
     float f = (float) Mth.rotLerp(d0, yRot, targetYRot);
-    this.setRot(0, f % 360);
+    this.setYRot(f);
   }
 
   public void lerpOldRotationStep(int steps, double targetYRot) {
     double d0 = 1.0 / (double) steps;
     float f = (float) Mth.rotLerp(d0, yRotO, targetYRot);
-    this.setRotO(0, f % 360);
+    this.setRotO(f);
   }
 
   public Map<Integer, Integer> getShields() {
@@ -128,10 +140,6 @@ public final class AegusBarrierShieldHandler {
 
   public void syncData(Player player) {
     player.syncData(ModDateAttachmentTypes.AEGUS_BARRIER_SHIELD);
-  }
-
-  public float getViewXRot(float partialTicks) {
-    return partialTicks == 1.0F ? this.xRot : Mth.lerp(partialTicks, this.xRotO, this.xRot);
   }
 
   public float getViewYRot(float partialTick) {
@@ -159,9 +167,7 @@ public final class AegusBarrierShieldHandler {
       buf.writeUUID(attachment.uuid);
 
       buf.writeFloat(attachment.yRotO);
-      buf.writeFloat(attachment.xRotO);
       buf.writeFloat(attachment.yRot);
-      buf.writeFloat(attachment.xRot);
 
       buf.writeInt(attachment.expandsCount);
       buf.writeBoolean(attachment.isRemoved);
@@ -181,9 +187,7 @@ public final class AegusBarrierShieldHandler {
       UUID uuid = buf.readUUID();
 
       float yRotO = buf.readFloat();
-      float xRotO = buf.readFloat();
       float yRot = buf.readFloat();
-      float xRot = buf.readFloat();
       int expandsCount = buf.readInt();
       boolean isRemoved = buf.readBoolean();
 
@@ -194,7 +198,7 @@ public final class AegusBarrierShieldHandler {
         Entity entity = ((Player) holder).level().getEntity(id);
         assert entity instanceof AegusBarrierShieldManagerEntity : "Entity must be an AegusBarrierShieldManagerEntity";
         assert entity.getUUID().equals(uuid) : "Entity UUID mismatch";
-        return new AegusBarrierShieldHandler((AegusBarrierShieldManagerEntity) entity, map, expandsCount, yRotO, xRotO, yRot, xRot);
+        return new AegusBarrierShieldHandler((AegusBarrierShieldManagerEntity) entity, map, expandsCount, yRotO, yRot);
       }
 
       previousValue.expandsCount = expandsCount;
@@ -205,9 +209,7 @@ public final class AegusBarrierShieldHandler {
       }
 
       previousValue.yRotO = yRotO;
-      previousValue.xRotO = xRotO;
       previousValue.yRot = yRot;
-      previousValue.xRot = xRot;
       previousValue.isRemoved = isRemoved;
       return previousValue;
     }

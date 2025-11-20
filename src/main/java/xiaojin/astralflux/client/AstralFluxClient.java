@@ -1,6 +1,5 @@
 package xiaojin.astralflux.client;
 
-import net.minecraft.client.model.HumanoidModel;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -10,8 +9,8 @@ import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
-import xiaojin.astralflux.client.renderer.entiey.armpose.AegusBarrierArmPose;
-import xiaojin.astralflux.client.renderer.item.AegusBarrierShieldRenderer;
+import xiaojin.astralflux.client.renderer.armpose.AegusBarrierArmPose;
+import xiaojin.astralflux.client.renderer.AegusBarrierShieldRenderer;
 import xiaojin.astralflux.core.AstralFlux;
 import xiaojin.astralflux.core.AstralFluxKey;
 import xiaojin.astralflux.init.ModItems;
