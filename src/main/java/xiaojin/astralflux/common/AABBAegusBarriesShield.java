@@ -4,6 +4,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Vector2d;
 import xiaojin.astralflux.common.entity.special.AegusBarrierShieldEntity;
 
@@ -27,7 +28,7 @@ public class AABBAegusBarriesShield extends AABB {
    * 无需判断 y 轴，因为护盾的 y 视项通常不会翻转（30 度，这在 BB 中近乎可以忽略）。
    */
   @Override
-  public Optional<Vec3> clip(Vec3 from, Vec3 to) {
+  public @NotNull Optional<Vec3> clip(Vec3 from, Vec3 to) {
     final var vec3GoTo = to.subtract(from);
     final var vec3LookAt = this.abs.getLookAngle();
 

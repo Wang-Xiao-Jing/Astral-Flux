@@ -50,7 +50,6 @@ public class AegusBarrierShieldEntity extends Entity implements GeoEntity, Trace
 
   public AegusBarrierShieldEntity(final EntityType<?> entityType, final Level level) {
     super(entityType, level);
-    this.setBoundingBox(new AABBAegusBarriesShield(this));
   }
 
   public AegusBarrierShieldEntity(final Level level, AegusBarrierShieldManagerEntity manager) {
