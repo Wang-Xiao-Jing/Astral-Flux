@@ -15,9 +15,8 @@ import java.util.Optional;
 public class AABBAegusBarriesShield extends AABB {
   private final AegusBarrierShieldEntity abs;
 
-  public AABBAegusBarriesShield(AegusBarrierShieldEntity abs) {
-    super(abs.getBoundingBox().minX, abs.getBoundingBox().minY, abs.getBoundingBox().minZ,
-      abs.getBoundingBox().maxX, abs.getBoundingBox().maxY, abs.getBoundingBox().maxZ);
+  public AABBAegusBarriesShield(AegusBarrierShieldEntity abs, AABB aabb) {
+    super(aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ);
     this.abs = abs;
   }
 
@@ -53,7 +52,7 @@ public class AABBAegusBarriesShield extends AABB {
    */
   private boolean isVectorPassedByBackSide(final Vector2d vectorGoTo, final Vector2d vectorLookAt) {
     // 计算量向量夹角并把圆周制转为角度制。
-    final double angle = vectorGoTo.angle(vectorLookAt) * Mth.DEG_TO_RAD;
+    final double angle = vectorGoTo.angle(vectorLookAt) * Mth.RAD_TO_DEG;
 
     // 若夹角角度的绝对值大于等于 90（展开面 180），则意味着是从背面射出。
     return Math.abs(angle) >= 90;
@@ -102,5 +101,10 @@ public class AABBAegusBarriesShield extends AABB {
     double oZ = from.y + t * rayY;
 
     return new Vec3(oX, oY, oZ);
+  }
+
+  @Override
+  public AABB inflate(double x, double y, double z) {
+    return new AABBAegusBarriesShield(this.abs, super.inflate(x, y, z));
   }
 }

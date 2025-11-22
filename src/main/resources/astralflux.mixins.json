@@ -4,6 +4,7 @@
   "package": "xiaojin.astralflux.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "MixinEntity",
     "MixinPlayer"
   ],
   "client": [

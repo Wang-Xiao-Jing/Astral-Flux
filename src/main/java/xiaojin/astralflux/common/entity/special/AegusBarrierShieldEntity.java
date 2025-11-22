@@ -15,8 +15,10 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.TraceableEntity;import net.minecraft.world.level.Level;
+import net.minecraft.world.entity.TraceableEntity;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
@@ -57,7 +59,6 @@ public class AegusBarrierShieldEntity extends Entity implements GeoEntity, Trace
     this.manager = manager;
     setOwner(manager.getOwner());
     this.setIntact(false);
-    this.setBoundingBox(new AABBAegusBarriesShield(this));
   }
 
   @Override
@@ -150,6 +151,12 @@ public class AegusBarrierShieldEntity extends Entity implements GeoEntity, Trace
     }
 
     return true;
+  }
+
+  @Override
+  public AABB makeBoundingBox() {
+    final AABB aabb = super.makeBoundingBox();
+    return new AABBAegusBarriesShield(this, aabb);
   }
 
   public void setOwner(@Nullable final Entity owner) {
